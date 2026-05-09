@@ -659,6 +659,7 @@ footer{
       <div class="lineup-slots" id="lineupSlots"></div>
       <div class="lineup-actions">
         <button class="lineup-btn secondary" id="btn-clear">Clear</button>
+        <button class="lineup-btn" id="btn-optimize" title="Max projection, 6 players, $49,000–$50,000">Optimize</button>
         <button class="lineup-btn" id="btn-save">Save</button>
       </div>
       <div id="lu-warnings" style="margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--warn);line-height:1.5"></div>
@@ -1091,6 +1092,61 @@ document.getElementById('btn-clear').onclick = () => {
   renderPlaylist();
   renderBuilder();
 };
+// Knapsack DP: max sum(cash_proj) over exactly SLOTS players,
+// total salary in [SAL_MIN, CAP]. All DK salaries are multiples of $100.
+function optimizeLineup(SAL_MIN){
+  const STEP = 100;
+  const buckets = (CAP / STEP) + 1;
+  const pool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0 && p.salary <= CAP);
+  if (pool.length < SLOTS) return null;
+  const NEG = -Infinity;
+  const dp = [], parent = [];
+  for (let k = 0; k <= SLOTS; k++) {
+    dp.push(new Array(buckets).fill(NEG));
+    parent.push(new Array(buckets).fill(null));
+  }
+  dp[0][0] = 0;
+  for (let i = 0; i < pool.length; i++) {
+    const p = pool[i];
+    const sb = Math.round(p.salary / STEP);
+    const proj = p.cash_proj;
+    for (let k = SLOTS; k >= 1; k--) {
+      const dpk = dp[k], dpkm1 = dp[k-1], park = parent[k];
+      for (let s = buckets - 1; s >= sb; s--) {
+        const prev = dpkm1[s - sb];
+        if (prev === NEG) continue;
+        const cand = prev + proj;
+        if (cand > dpk[s]) {
+          dpk[s] = cand;
+          park[s] = {idx: i, prevS: s - sb};
+        }
+      }
+    }
+  }
+  const minBucket = Math.ceil(SAL_MIN / STEP);
+  let bestS = -1, bestProj = NEG;
+  for (let s = minBucket; s < buckets; s++) {
+    if (dp[SLOTS][s] > bestProj) { bestProj = dp[SLOTS][s]; bestS = s; }
+  }
+  if (bestS < 0) return null;
+  const picks = [];
+  let k = SLOTS, s = bestS;
+  while (k > 0 && parent[k][s]) {
+    picks.push(pool[parent[k][s].idx]);
+    s = parent[k][s].prevS;
+    k--;
+  }
+  return picks.reverse();
+}
+
+document.getElementById('btn-optimize').onclick = () => {
+  const picks = optimizeLineup(49000);
+  if (!picks) { alert('No feasible 6-player lineup found ≥ $49,000.'); return; }
+  LINEUP = picks;
+  renderPlaylist();
+  renderBuilder();
+};
+
 document.getElementById('btn-save').onclick = () => {
   if (LINEUP.length !== SLOTS) {
     alert('Need exactly '+SLOTS+' players. Currently: '+LINEUP.length);
