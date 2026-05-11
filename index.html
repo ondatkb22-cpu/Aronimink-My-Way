@@ -425,7 +425,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Monday, May 11, 2026 &middot; 13:40 UTC<br>
+      Monday, May 11, 2026 &middot; 14:07 UTC<br>
       DK salaries · 154 players
     </div>
   </div>
@@ -663,30 +663,32 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 <section id="tab-major" class="tab-section">
   <div class="section-head">
     <h2>Major History &amp; Course Fit</h2>
-    <span class="sub">PGA performance &middot; Aronimink-specific data</span>
+    <span class="sub">Ranked by performance &middot; career majors + recent form</span>
   </div>
   <div class="value-callout">
-    <strong>Major Pedigree:</strong> consistent major performers (top-20 rate &ge; 60%) get extra weight even when recent form softens. <strong>Aronimink History</strong> covers the 2018 BMW (Tour&rsquo;s last visit) and the 2010 / 2011 AT&amp;T National. List is filtered to players with a tracked major record or course history.
+    <strong>Pedigree Score</strong> = career major wins &times;25 + top-5s &times;5 + (top-10s &minus; top-5s) &times;2 + recent finishes (2026 Masters &amp; 2025 majors, WIN=30, 2nd=20, 3rd=15, T5=12, T10=8, T20=4, T40=1). Sorted descending by default.
   </div>
   <div class="filter-bar">
     <button class="filter-chip active" data-mfilter="all">All</button>
-    <button class="filter-chip" data-mfilter="pga-wins">PGA Win(s)</button>
-    <button class="filter-chip" data-mfilter="top5-major">5+ Top-5 Majors</button>
-    <button class="filter-chip" data-mfilter="major-tested">Major-Tested</button>
-    <button class="filter-chip" data-mfilter="course-history">Aronimink History</button>
+    <button class="filter-chip" data-mfilter="major-winners">Major Winners</button>
+    <button class="filter-chip" data-mfilter="multi-major">Multi-Major</button>
+    <button class="filter-chip" data-mfilter="masters26-top20">&apos;26 Masters T20</button>
+    <button class="filter-chip" data-mfilter="hot-2025">Hot in 2025</button>
     <input class="search-box" type="text" placeholder="Search&hellip;" id="majorSearch">
   </div>
   <table class="players" id="majorTable">
     <thead>
       <tr>
+        <th class="num">#</th>
         <th data-msort="name">Player</th>
-        <th class="num hide-mobile" data-msort="pga_wins">PGA Wins</th>
-        <th class="num sort-active" data-msort="major_top5">Top-5 Majors &#9660;</th>
-        <th class="num hide-mobile" data-msort="major_top20_pct">Top-20 %</th>
-        <th class="num" data-msort="salary">Salary</th>
+        <th class="num sort-active" data-msort="pedigree_score">Pedigree &#9660;</th>
+        <th class="num hide-mobile" data-msort="major_wins">Maj W</th>
+        <th class="num hide-mobile" data-msort="major_top5">T5</th>
+        <th class="num" data-msort="masters_2026">&apos;26 Mast</th>
+        <th class="num" data-msort="best_2025">2025 Best</th>
+        <th class="num" data-msort="salary">Sal</th>
         <th class="num" data-msort="cash_proj">Proj</th>
-        <th data-msort="aronimink_history">Aronimink</th>
-        <th data-msort="tag">Status</th>
+        <th data-msort="tag">Tag</th>
       </tr>
     </thead>
     <tbody id="majorTbody"></tbody>
@@ -918,7 +920,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </main>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/11/2026 13:40 UTC &middot; Lessons 12&ndash;18 active &middot; Built on the bones of the Truist post-mortem
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/11/2026 14:07 UTC &middot; Lessons 12&ndash;18 active &middot; Built on the bones of the Truist post-mortem
 </footer>
 
 <script>
@@ -1059,30 +1061,59 @@ const DG_DATA = {
 };
 
 // PGA Championship + course-history record
+// Verified May 2026: career major totals + recent finishes (2025 majors + 2026 Masters)
+// "?" = couldn't verify, "—" = didn't play / not in field
 const MAJOR_HISTORY = {
-  "Brooks Koepka":{pga_wins:3,major_top5:14,major_top20_pct:70,aronimink_history:"—"},
-  "Scottie Scheffler":{pga_wins:0,major_top5:8,major_top20_pct:75,aronimink_history:"—"},
-  "Rory McIlroy":{pga_wins:2,major_top5:12,major_top20_pct:80,aronimink_history:"—"},
-  "Tyrrell Hatton":{pga_wins:0,major_top5:3,major_top20_pct:55,aronimink_history:"—"},
-  "Collin Morikawa":{pga_wins:2,major_top5:6,major_top20_pct:65,aronimink_history:"—"},
-  "Cameron Young":{pga_wins:0,major_top5:1,major_top20_pct:45,aronimink_history:"—"},
-  "Tommy Fleetwood":{pga_wins:0,major_top5:4,major_top20_pct:60,aronimink_history:"—"},
-  "Hideki Matsuyama":{pga_wins:0,major_top5:8,major_top20_pct:70,aronimink_history:"—"},
-  "Keegan Bradley":{pga_wins:1,major_top5:5,major_top20_pct:65,aronimink_history:"WIN 2018 BMW"},
-  "Justin Thomas":{pga_wins:2,major_top5:9,major_top20_pct:75,aronimink_history:"—"},
-  "Jon Rahm":{pga_wins:0,major_top5:7,major_top20_pct:70,aronimink_history:"—"},
-  "Jordan Spieth":{pga_wins:0,major_top5:9,major_top20_pct:80,aronimink_history:"—"},
-  "Patrick Reed":{pga_wins:0,major_top5:4,major_top20_pct:55,aronimink_history:"—"},
-  "Brian Harman":{pga_wins:0,major_top5:1,major_top20_pct:45,aronimink_history:"—"},
-  "Jason Day":{pga_wins:1,major_top5:10,major_top20_pct:75,aronimink_history:"—"},
-  "Padraig Harrington":{pga_wins:0,major_top5:6,major_top20_pct:55,aronimink_history:"—"},
-  "Y.E. Yang":{pga_wins:1,major_top5:2,major_top20_pct:30,aronimink_history:"—"},
-  "Shaun Micheel":{pga_wins:1,major_top5:1,major_top20_pct:25,aronimink_history:"—"},
-  "Jimmy Walker":{pga_wins:1,major_top5:2,major_top20_pct:35,aronimink_history:"—"},
-  "Justin Rose":{pga_wins:0,major_top5:5,major_top20_pct:55,aronimink_history:"—"},
-  "Xander Schauffele":{pga_wins:1,major_top5:9,major_top20_pct:75,aronimink_history:"—"},
-  "Ludvig Aberg":{pga_wins:0,major_top5:2,major_top20_pct:60,aronimink_history:"—"},
-  "Matt Fitzpatrick":{pga_wins:0,major_top5:3,major_top20_pct:60,aronimink_history:"—"}
+  "Scottie Scheffler":   {major_wins:4,pga_wins:1,major_top5:11,major_top10:15,major_starts:28,masters_2026:"2",  pga_2025:"WIN",us_open_2025:"T7", open_2025:"WIN",masters_2025:"T5", note:"World #1, 4-time major champ"},
+  "Rory McIlroy":        {major_wins:6,pga_wins:2,major_top5:20,major_top10:34,major_starts:68,masters_2026:"WIN",pga_2025:"T47",us_open_2025:"T19",open_2025:"T7", masters_2025:"WIN",note:"Career Grand Slam, back-to-back Masters"},
+  "Bryson DeChambeau":   {major_wins:2,pga_wins:0,major_top5:7, major_top10:11,major_starts:36,masters_2026:"MC", pga_2025:"T2", us_open_2025:"MC", open_2025:"T10",masters_2025:"T5", note:"2x US Open champ"},
+  "Jon Rahm":            {major_wins:2,pga_wins:0,major_top5:8, major_top10:17,major_starts:34,masters_2026:"MC", pga_2025:"T8", us_open_2025:"T7", open_2025:"?",  masters_2025:"T14",note:"2x major champ"},
+  "Cameron Young":       {major_wins:0,pga_wins:0,major_top5:2, major_top10:6, major_starts:18,masters_2026:"T3", pga_2025:"?",  us_open_2025:"T4", open_2025:"?",  masters_2025:"MC", note:"2026 Masters T3, major contender"},
+  "Xander Schauffele":   {major_wins:2,pga_wins:1,major_top5:7, major_top10:15,major_starts:30,masters_2026:"T9", pga_2025:"?",  us_open_2025:"?",  open_2025:"T7", masters_2025:"T17",note:"2024 PGA + Open champ"},
+  "Matt Fitzpatrick":    {major_wins:1,pga_wins:0,major_top5:3, major_top10:7, major_starts:42,masters_2026:"?",  pga_2025:"T8", us_open_2025:"T57",open_2025:"T4", masters_2025:"?",  note:"2022 US Open champ"},
+  "Collin Morikawa":     {major_wins:2,pga_wins:1,major_top5:5, major_top10:9, major_starts:25,masters_2026:"T7", pga_2025:"?",  us_open_2025:"T23",open_2025:"MC", masters_2025:"T14",note:"2020 PGA + 2021 Open"},
+  "Ludvig Aberg":        {major_wins:0,pga_wins:0,major_top5:2, major_top10:3, major_starts:7, masters_2026:"T19",pga_2025:"MC", us_open_2025:"?",  open_2025:"?",  masters_2025:"T7", note:"Masters runner-up debut"},
+  "Tommy Fleetwood":     {major_wins:0,pga_wins:0,major_top5:4, major_top10:12,major_starts:40,masters_2026:"?",  pga_2025:"?",  us_open_2025:"MC", open_2025:"?",  masters_2025:"T17",note:"2025 Tour Championship winner"},
+  "Viktor Hovland":      {major_wins:0,pga_wins:0,major_top5:3, major_top10:6, major_starts:24,masters_2026:"?",  pga_2025:"T28",us_open_2025:"3",  open_2025:"?",  masters_2025:"T9", note:"2025 US Open 3rd"},
+  "Justin Rose":         {major_wins:1,pga_wins:0,major_top5:11,major_top10:22,major_starts:90,masters_2026:"T3", pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"2",  note:"2013 US Open, Augusta vet"},
+  "Justin Thomas":       {major_wins:2,pga_wins:2,major_top5:7, major_top10:11,major_starts:40,masters_2026:"?",  pga_2025:"MC", us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2x PGA champ (2017, 2022)"},
+  "Brooks Koepka":       {major_wins:5,pga_wins:3,major_top5:11,major_top10:17,major_starts:42,masters_2026:"T12",pga_2025:"?",  us_open_2025:"?",  open_2025:"MC", masters_2025:"MC", note:"3x PGA, 2x US Open"},
+  "Hideki Matsuyama":    {major_wins:1,pga_wins:0,major_top5:4, major_top10:10,major_starts:52,masters_2026:"?",  pga_2025:"MC", us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2021 Masters champ"},
+  "Tyrrell Hatton":      {major_wins:0,pga_wins:0,major_top5:3, major_top10:7, major_starts:40,masters_2026:"T3", pga_2025:"?",  us_open_2025:"T4", open_2025:"?",  masters_2025:"?",  note:"2026 Masters T3"},
+  "Patrick Reed":        {major_wins:1,pga_wins:0,major_top5:4, major_top10:8, major_starts:40,masters_2026:"T12",pga_2025:"?",  us_open_2025:"T54",open_2025:"MC", masters_2025:"T3", note:"2018 Masters champ"},
+  "Patrick Cantlay":     {major_wins:0,pga_wins:0,major_top5:2, major_top10:4, major_starts:31,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"Major contender, never won"},
+  "Chris Gotterup":      {major_wins:0,pga_wins:0,major_top5:1, major_top10:1, major_starts:4, masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"3",  masters_2025:"—", note:"2025 Open 3rd"},
+  "Russell Henley":      {major_wins:0,pga_wins:0,major_top5:2, major_top10:5, major_starts:40,masters_2026:"T3", pga_2025:"?",  us_open_2025:"T10",open_2025:"T7", masters_2025:"?",  note:"2026 Masters T3"},
+  "Jordan Spieth":       {major_wins:3,pga_wins:0,major_top5:11,major_top10:18,major_starts:48,masters_2026:"?",  pga_2025:"MC", us_open_2025:"T36",open_2025:"?",  masters_2025:"T12",note:"3x major, career-slam chase"},
+  "Shane Lowry":         {major_wins:1,pga_wins:0,major_top5:3, major_top10:7, major_starts:42,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"T5", note:"2019 Open champ"},
+  "Robert MacIntyre":    {major_wins:0,pga_wins:0,major_top5:1, major_top10:3, major_starts:18,masters_2026:"MC", pga_2025:"?",  us_open_2025:"2",  open_2025:"T7", masters_2025:"?",  note:"2025 US Open runner-up"},
+  "Joaquin Niemann":     {major_wins:0,pga_wins:0,major_top5:0, major_top10:1, major_starts:22,masters_2026:"—",  pga_2025:"T8", us_open_2025:"MC", open_2025:"MC", masters_2025:"?",  note:"LIV star, major struggles"},
+  "Sam Burns":           {major_wins:0,pga_wins:0,major_top5:0, major_top10:2, major_starts:24,masters_2026:"T7", pga_2025:"T19",us_open_2025:"T7", open_2025:"?",  masters_2025:"T22",note:"Elite putter, finally clicking"},
+  "Sepp Straka":         {major_wins:0,pga_wins:0,major_top5:0, major_top10:2, major_starts:22,masters_2026:"?",  pga_2025:"MC", us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2x 2025 PGA Tour winner"},
+  "Si Woo Kim":          {major_wins:0,pga_wins:0,major_top5:0, major_top10:2, major_starts:30,masters_2026:"?",  pga_2025:"T8", us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2017 Players champ"},
+  "Jason Day":           {major_wins:1,pga_wins:1,major_top5:9, major_top10:17,major_starts:52,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"MC", masters_2025:"T9", note:"2015 PGA champ"},
+  "Maverick McNealy":    {major_wins:0,pga_wins:0,major_top5:0, major_top10:0, major_starts:8, masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"T32",note:"Rising contender"},
+  "J.J. Spaun":          {major_wins:1,pga_wins:0,major_top5:1, major_top10:1, major_starts:12,masters_2026:"MC", pga_2025:"T37",us_open_2025:"WIN",open_2025:"?",  masters_2025:"—", note:"2025 US Open CHAMP"},
+  "Adam Scott":          {major_wins:1,pga_wins:0,major_top5:8, major_top10:20,major_starts:94,masters_2026:"?",  pga_2025:"?",  us_open_2025:"T12",open_2025:"?",  masters_2025:"MC", note:"2013 Masters champ"},
+  "Rickie Fowler":       {major_wins:0,pga_wins:0,major_top5:9, major_top10:12,major_starts:56,masters_2026:"—",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"4 major top-5s in 2014"},
+  "Keegan Bradley":      {major_wins:1,pga_wins:1,major_top5:3, major_top10:7, major_starts:40,masters_2026:"?",  pga_2025:"T8", us_open_2025:"T34",open_2025:"?",  masters_2025:"?",  note:"2011 PGA champ, US Ryder capt"},
+  "Gary Woodland":       {major_wins:1,pga_wins:0,major_top5:1, major_top10:4, major_starts:53,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2019 US Open champ"},
+  "Harris English":      {major_wins:0,pga_wins:0,major_top5:3, major_top10:5, major_starts:36,masters_2026:"?",  pga_2025:"T2", us_open_2025:"?",  open_2025:"2",  masters_2025:"T12",note:"Two 2025 major runner-ups"},
+  "Sungjae Im":          {major_wins:0,pga_wins:0,major_top5:1, major_top10:3, major_starts:28,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2020 Masters runner-up"},
+  "Wyndham Clark":       {major_wins:1,pga_wins:0,major_top5:2, major_top10:3, major_starts:15,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"T4", masters_2025:"?",  note:"2023 US Open champ"},
+  "Dustin Johnson":      {major_wins:2,pga_wins:0,major_top5:11,major_top10:21,major_starts:65,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"MC", note:"2x major champ, LIV vet"},
+  "Max Homa":            {major_wins:0,pga_wins:0,major_top5:1, major_top10:1, major_starts:23,masters_2026:"T9", pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2026 Masters T9"},
+  "Cameron Smith":       {major_wins:1,pga_wins:0,major_top5:5, major_top10:11,major_starts:40,masters_2026:"MC", pga_2025:"MC", us_open_2025:"MC", open_2025:"MC", masters_2025:"MC", note:"2022 Open champ, lost form"},
+  "Alex Noren":          {major_wins:0,pga_wins:0,major_top5:0, major_top10:3, major_starts:39,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"?",  masters_2025:"—", note:"Veteran, no major breakthrough"},
+  "Brian Harman":        {major_wins:1,pga_wins:0,major_top5:2, major_top10:4, major_starts:40,masters_2026:"?",  pga_2025:"?",  us_open_2025:"?",  open_2025:"T7", masters_2025:"?",  note:"2023 Open champ"},
+  "Nicolai Hojgaard":    {major_wins:0,pga_wins:0,major_top5:0, major_top10:0, major_starts:8, masters_2026:"MC", pga_2025:"?",  us_open_2025:"?",  open_2025:"T14",masters_2025:"?",  note:"2023 Ryder Cup"},
+  "Aaron Rai":           {major_wins:0,pga_wins:0,major_top5:0, major_top10:0, major_starts:7, masters_2026:"?",  pga_2025:"T19",us_open_2025:"?",  open_2025:"?",  masters_2025:"?",  note:"2024 Wyndham winner"},
+  "Jhonattan Vegas":     {major_wins:0,pga_wins:0,major_top5:1, major_top10:1, major_starts:18,masters_2026:"?",  pga_2025:"T5", us_open_2025:"?",  open_2025:"?",  masters_2025:"—", note:"2025 PGA T5"},
+  // Pre-existing veterans (kept for completeness)
+  "Padraig Harrington":  {major_wins:3,pga_wins:0,major_top5:6, major_top10:10,major_starts:96,masters_2026:"—",  pga_2025:"—",  us_open_2025:"—",  open_2025:"?",  masters_2025:"—", note:"3x major champ (2007-08)"},
+  "Y.E. Yang":           {major_wins:1,pga_wins:1,major_top5:2, major_top10:3, major_starts:40,masters_2026:"—",  pga_2025:"—",  us_open_2025:"—",  open_2025:"—",  masters_2025:"—", note:"2009 PGA champ (Tiger upset)"},
+  "Shaun Micheel":       {major_wins:1,pga_wins:1,major_top5:1, major_top10:2, major_starts:50,masters_2026:"—",  pga_2025:"—",  us_open_2025:"—",  open_2025:"—",  masters_2025:"—", note:"2003 PGA champ"},
+  "Jimmy Walker":        {major_wins:1,pga_wins:1,major_top5:2, major_top10:4, major_starts:35,masters_2026:"—",  pga_2025:"—",  us_open_2025:"—",  open_2025:"—",  masters_2025:"—", note:"2016 PGA champ"},
 };
 
 // Some PLAYERS names differ from DG_DATA keys; map back to canonical PLAYERS name.
@@ -1090,6 +1121,35 @@ const MAJOR_HISTORY = {
 const DG_NAME_FIX = {
   "Matthew McCarty": "Matt McCarty"
 };
+
+// Score a single major finish (string like "WIN", "2", "T7", "MC", "?", "—") for pedigree boost
+function finishPoints(f) {
+  if (!f || f === '?' || f === '—' || f === 'MC') return 0;
+  if (f === 'WIN') return 30;
+  const n = parseInt(String(f).replace(/^T/, ''), 10);
+  if (isNaN(n)) return 0;
+  if (n === 1) return 30;
+  if (n === 2) return 20;
+  if (n === 3) return 15;
+  if (n <= 5) return 12;
+  if (n <= 10) return 8;
+  if (n <= 20) return 4;
+  if (n <= 40) return 1;
+  return 0;
+}
+
+// Best finish across the four 2025 majors (lowest numeric position; WIN beats all)
+function best2025(m) {
+  const fs = [m.pga_2025, m.us_open_2025, m.open_2025, m.masters_2025];
+  let best = null, bestN = Infinity;
+  for (const f of fs) {
+    if (!f || f === '?' || f === '—' || f === 'MC') continue;
+    if (f === 'WIN') return 'WIN';
+    const n = parseInt(String(f).replace(/^T/, ''), 10);
+    if (!isNaN(n) && n < bestN) { bestN = n; best = f; }
+  }
+  return best || '—';
+}
 
 PLAYERS.forEach(p => {
   const dg = DG_DATA[p.name] || (DG_NAME_FIX[p.name] && DG_DATA[DG_NAME_FIX[p.name]]) || null;
@@ -1103,11 +1163,35 @@ PLAYERS.forEach(p => {
        : dg.vs_baseline <= -0.50 ? 'FADE'
        : 'NEUTRAL')
     : 'NEUTRAL';
-  const m = MAJOR_HISTORY[p.name] || {};
-  p.pga_wins = m.pga_wins || 0;
-  p.major_top5 = m.major_top5 || 0;
-  p.major_top20_pct = m.major_top20_pct || 0;
-  p.aronimink_history = m.aronimink_history || '—';
+  const m = MAJOR_HISTORY[p.name];
+  if (m) {
+    p.has_major_data = true;
+    p.major_wins = m.major_wins || 0;
+    p.pga_wins = m.pga_wins || 0;
+    p.major_top5 = m.major_top5 || 0;
+    p.major_top10 = m.major_top10 || 0;
+    p.major_starts = m.major_starts || 0;
+    p.masters_2026 = m.masters_2026 || '?';
+    p.pga_2025 = m.pga_2025 || '?';
+    p.us_open_2025 = m.us_open_2025 || '?';
+    p.open_2025 = m.open_2025 || '?';
+    p.masters_2025 = m.masters_2025 || '?';
+    p.major_note = m.note || '';
+    p.best_2025 = best2025(m);
+    p.recent_pts = finishPoints(m.masters_2026)
+                 + finishPoints(m.pga_2025) + finishPoints(m.us_open_2025)
+                 + finishPoints(m.open_2025) + finishPoints(m.masters_2025);
+    p.pedigree_score = p.major_wins * 25
+                     + p.major_top5 * 5
+                     + Math.max(0, p.major_top10 - p.major_top5) * 2
+                     + p.recent_pts;
+  } else {
+    p.has_major_data = false;
+    p.major_wins = 0; p.pga_wins = 0; p.major_top5 = 0; p.major_top10 = 0;
+    p.major_starts = 0; p.masters_2026 = '—'; p.pga_2025 = '—';
+    p.us_open_2025 = '—'; p.open_2025 = '—'; p.masters_2025 = '—';
+    p.major_note = ''; p.best_2025 = '—'; p.recent_pts = 0; p.pedigree_score = 0;
+  }
 });
 
 // =============== TABS ===============
@@ -1295,14 +1379,38 @@ document.getElementById('formSearch').addEventListener('input', e => {
 });
 
 // =============== MAJOR HISTORY TAB ===============
-let mSort = 'major_top5', mDir = 'desc', mFilter = 'all', mSearch = '';
+let mSort = 'pedigree_score', mDir = 'desc', mFilter = 'all', mSearch = '';
+
+function fmtFinish(f) {
+  if (!f || f === '?' || f === '—') return '<span style="color:var(--ink-3)">—</span>';
+  if (f === 'MC') return '<span style="color:var(--bad);font-weight:600">MC</span>';
+  if (f === 'WIN') return '<span style="color:var(--gain);font-weight:700">WIN</span>';
+  const n = parseInt(String(f).replace(/^T/, ''), 10);
+  if (!isNaN(n) && n <= 5) return '<span style="color:var(--gain);font-weight:700">'+f+'</span>';
+  if (!isNaN(n) && n <= 10) return '<span style="color:var(--gain)">'+f+'</span>';
+  if (!isNaN(n) && n <= 20) return '<span style="color:var(--ink)">'+f+'</span>';
+  return f;
+}
 
 function renderMajorHist(){
-  let filtered = PLAYERS.filter(p => p.major_top20_pct > 0 || p.aronimink_history !== '—');
-  if (mFilter === 'pga-wins')        filtered = filtered.filter(p => p.pga_wins > 0);
-  else if (mFilter === 'top5-major') filtered = filtered.filter(p => p.major_top5 >= 5);
-  else if (mFilter === 'major-tested') filtered = filtered.filter(p => p.major_top20_pct >= 60);
-  else if (mFilter === 'course-history') filtered = filtered.filter(p => p.aronimink_history !== '—');
+  let filtered = PLAYERS.filter(p => p.has_major_data);
+  if      (mFilter === 'major-winners')   filtered = filtered.filter(p => p.major_wins > 0);
+  else if (mFilter === 'multi-major')     filtered = filtered.filter(p => p.major_wins >= 2);
+  else if (mFilter === 'masters26-top20') filtered = filtered.filter(p => {
+    const f = p.masters_2026; if (!f || f === '?' || f === '—' || f === 'MC') return false;
+    if (f === 'WIN') return true;
+    const n = parseInt(String(f).replace(/^T/, ''), 10);
+    return !isNaN(n) && n <= 20;
+  });
+  else if (mFilter === 'hot-2025') filtered = filtered.filter(p => {
+    const fs = [p.pga_2025, p.us_open_2025, p.open_2025, p.masters_2025];
+    return fs.some(f => {
+      if (!f || f === '?' || f === '—' || f === 'MC') return false;
+      if (f === 'WIN') return true;
+      const n = parseInt(String(f).replace(/^T/, ''), 10);
+      return !isNaN(n) && n <= 10;
+    });
+  });
   if (mSearch) filtered = filtered.filter(p => p.name.toLowerCase().includes(mSearch));
   filtered.sort((a,b) => {
     let av = a[mSort], bv = b[mSort];
@@ -1311,27 +1419,26 @@ function renderMajorHist(){
     if (typeof av === 'string') return mDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
     return mDir === 'desc' ? bv - av : av - bv;
   });
-  document.getElementById('majorTbody').innerHTML = filtered.map(p => {
-    const histClass = p.aronimink_history === '—' ? 'major-hist empty' : 'major-hist';
-    return `
+  document.getElementById('majorTbody').innerHTML = filtered.map((p, i) => `
     <tr>
-      <td><div class="player-name">${p.name}</div><div class="player-archetype">${p.arch}</div></td>
-      <td class="num hide-mobile">${p.pga_wins > 0 ? '✓ '+p.pga_wins : '—'}</td>
-      <td class="num">${p.major_top5}</td>
-      <td class="num hide-mobile">${p.major_top20_pct}%</td>
+      <td class="num" style="color:var(--ink-3);font-weight:700">${i + 1}</td>
+      <td><div class="player-name">${p.name}</div><div class="player-archetype">${p.major_note || p.arch}</div></td>
+      <td class="num"><strong>${p.pedigree_score.toFixed(0)}</strong></td>
+      <td class="num hide-mobile">${p.major_wins > 0 ? '<strong>'+p.major_wins+'</strong>' : '—'}${p.pga_wins > 0 ? ' <span class="mono" style="font-size:9px;color:var(--accent)">('+p.pga_wins+' PGA)</span>' : ''}</td>
+      <td class="num hide-mobile">${p.major_top5 || '—'}</td>
+      <td class="num">${fmtFinish(p.masters_2026)}</td>
+      <td class="num">${fmtFinish(p.best_2025)}</td>
       <td class="num">${fmtSal(p.salary)}</td>
       <td class="num">${p.cash_proj.toFixed(1)}</td>
-      <td><span class="${histClass}">${p.aronimink_history}</span></td>
       <td><span class="tag ${p.tag}">${p.tag}</span></td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 }
 
 document.querySelectorAll('#majorTable th[data-msort]').forEach(th => {
   th.addEventListener('click', () => {
     const col = th.dataset.msort;
     if (mSort === col) mDir = mDir === 'desc' ? 'asc' : 'desc';
-    else { mSort = col; mDir = (col==='name'||col==='tag'||col==='aronimink_history') ? 'asc' : 'desc'; }
+    else { mSort = col; mDir = (col==='name'||col==='tag') ? 'asc' : 'desc'; }
     document.querySelectorAll('#majorTable th').forEach(t => t.classList.remove('sort-active'));
     th.classList.add('sort-active');
     th.textContent = th.textContent.replace(/[▼▲]/g,'').trim() + (mDir === 'desc' ? ' ▼' : ' ▲');
