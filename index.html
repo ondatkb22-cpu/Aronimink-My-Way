@@ -475,7 +475,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Monday, May 11, 2026 &middot; 17:13 UTC<br>
+      Monday, May 11, 2026 &middot; 22:32 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -488,6 +488,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
   <button class="tab-btn" data-tab="value">Value Hunt</button>
   <button class="tab-btn" data-tab="form">Form + DG</button>
   <button class="tab-btn" data-tab="major">Major History</button>
+  <button class="tab-btn" data-tab="model">Model</button>
   <button class="tab-btn" data-tab="builder">Builder</button>
   <button class="tab-btn" data-tab="angles">5 Angles</button>
   <button class="tab-btn" data-tab="archetypes">Archetypes</button>
@@ -748,6 +749,45 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
   </table>
 </section>
 
+<!-- =========== MODEL =========== -->
+<section id="tab-model" class="tab-section">
+  <div class="section-head">
+    <h2>Course-Fit Model</h2>
+    <span class="sub">Baseline SG + Aronimink adjustments &middot; ranked by FINAL</span>
+  </div>
+  <div class="value-callout">
+    <strong>FINAL = baseline + adjustments.</strong> Baseline is each player&rsquo;s long-run SG benchmark. Adjustments break out into <em>Off-Baseline</em> (Major boost, Timing, SG Cats, Course History) and <em>Course-Fit</em> (Distance, Accuracy, Others). Sorted descending by FINAL.
+  </div>
+  <div class="filter-bar">
+    <button class="filter-chip active" data-modelfilter="all">All</button>
+    <button class="filter-chip" data-modelfilter="positive">FINAL &gt; 0</button>
+    <button class="filter-chip" data-modelfilter="top30">Top 30</button>
+    <button class="filter-chip" data-modelfilter="best-fit">Biggest Fit Boost</button>
+    <button class="filter-chip" data-modelfilter="best-history">Best Course Hist</button>
+    <input class="search-box" type="text" placeholder="Search&hellip;" id="modelSearch">
+  </div>
+  <table class="players" id="modelTable">
+    <thead>
+      <tr>
+        <th class="num">#</th>
+        <th data-modelsort="name">Player</th>
+        <th class="num sort-active" data-modelsort="final_sg">FINAL &#9660;</th>
+        <th class="num" data-modelsort="baseline_sg">Base</th>
+        <th class="num hide-mobile" data-modelsort="adj_major">Maj</th>
+        <th class="num hide-mobile" data-modelsort="adj_timing">Time</th>
+        <th class="num hide-mobile" data-modelsort="adj_sgcats">SG Cat</th>
+        <th class="num" data-modelsort="adj_chist">C-Hist</th>
+        <th class="num hide-mobile" data-modelsort="adj_dist">Dist</th>
+        <th class="num hide-mobile" data-modelsort="adj_acc">Acc</th>
+        <th class="num hide-mobile" data-modelsort="adj_other">Other</th>
+        <th class="num" data-modelsort="adj_total">Total</th>
+        <th class="num" data-modelsort="salary">Sal</th>
+      </tr>
+    </thead>
+    <tbody id="modelTbody"></tbody>
+  </table>
+</section>
+
 <!-- =========== BUILDER =========== -->
 <section id="tab-builder" class="tab-section">
   <div class="section-head">
@@ -973,7 +1013,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </main>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/11/2026 17:13 UTC &middot; Lessons 12&ndash;18 active &middot; Built on the bones of the Truist post-mortem
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/11/2026 22:32 UTC &middot; Lessons 12&ndash;18 active &middot; Built on the bones of the Truist post-mortem
 </footer>
 
 <script>
@@ -1118,6 +1158,166 @@ const DG_DATA = {
 // PGA Championship + course-history record
 // Verified May 2026: career major totals + recent finishes (2025 majors + 2026 Masters)
 // "?" = couldn't verify, "—" = didn't play / not in field
+// Course-fit adjustment model — baseline SG + Aronimink-specific adjustments
+const MODEL_ADJ = {
+  "Scottie Scheffler":{baseline:2.90,major:0.20,misc:null,timing:0.05,sgcats:-0.06,chist:-0.02,dist:-0.05,acc:0.03,other:0.05,total:0.10,final:3.12},
+  "Rory McIlroy":{baseline:2.00,major:0.24,misc:null,timing:-0.12,sgcats:0.08,chist:0.21,dist:0.01,acc:0.07,other:0.03,total:0.16,final:2.58},
+  "Jon Rahm":{baseline:2.09,major:0.06,misc:null,timing:-0.03,sgcats:0.09,chist:0.14,dist:-0.02,acc:0.04,other:0.02,total:0.10,final:2.43},
+  "Cameron Young":{baseline:2.07,major:0.08,misc:null,timing:0.04,sgcats:0.08,chist:0.00,dist:-0.05,acc:0.04,other:0.01,total:0.12,final:2.35},
+  "Xander Schauffele":{baseline:1.66,major:0.25,misc:null,timing:-0.01,sgcats:0.04,chist:0.23,dist:0.03,acc:0.04,other:0.00,total:0.10,final:2.30},
+  "Ludvig Aberg":{baseline:1.76,major:0.07,misc:null,timing:0.14,sgcats:0.11,chist:-0.05,dist:-0.05,acc:0.04,other:0.01,total:0.10,final:2.09},
+  "Matt Fitzpatrick":{baseline:1.77,major:0.15,misc:null,timing:-0.01,sgcats:0.03,chist:0.08,dist:-0.05,acc:0.01,other:0.05,total:0.04,final:2.01},
+  "Bryson DeChambeau":{baseline:1.32,major:0.18,misc:null,timing:-0.02,sgcats:0.02,chist:0.19,dist:-0.01,acc:0.07,other:0.02,total:0.11,final:1.79},
+  "Tommy Fleetwood":{baseline:1.66,major:0.12,misc:null,timing:-0.04,sgcats:0.03,chist:0.03,dist:0.00,acc:0.00,other:0.08,total:-0.01,final:1.79},
+  "Patrick Cantlay":{baseline:1.49,major:0.06,misc:null,timing:0.01,sgcats:0.12,chist:-0.04,dist:-0.02,acc:0.01,other:0.01,total:0.06,final:1.68},
+  "Min Woo Lee":{baseline:1.16,major:0.01,misc:null,timing:0.07,sgcats:0.04,chist:0.24,dist:-0.05,acc:0.04,other:0.01,total:0.11,final:1.58},
+  "Si Woo Kim":{baseline:1.32,major:0.00,misc:null,timing:0.00,sgcats:0.04,chist:0.21,dist:-0.01,acc:0.01,other:0.10,total:-0.07,final:1.50},
+  "Adam Scott":{baseline:1.23,major:0.11,misc:null,timing:-0.14,sgcats:0.11,chist:0.09,dist:0.02,acc:0.03,other:0.01,total:0.07,final:1.48},
+  "Collin Morikawa":{baseline:1.45,major:0.18,misc:null,timing:0.01,sgcats:-0.03,chist:-0.03,dist:-0.05,acc:0.00,other:0.09,total:-0.05,final:1.48},
+  "Nicolai Hojgaard":{baseline:1.22,major:0.03,misc:null,timing:0.02,sgcats:0.06,chist:0.06,dist:-0.05,acc:0.05,other:0.05,total:0.14,final:1.48},
+  "Robert MacIntyre":{baseline:1.29,major:0.09,misc:null,timing:0.07,sgcats:-0.02,chist:0.03,dist:-0.05,acc:0.01,other:0.03,total:0.04,final:1.45},
+  "Rickie Fowler":{baseline:1.37,major:0.19,misc:null,timing:-0.07,sgcats:0.09,chist:-0.17,dist:0.03,acc:0.00,other:0.04,total:0.01,final:1.45},
+  "J.J. Spaun":{baseline:1.31,major:0.06,misc:null,timing:0.00,sgcats:0.03,chist:0.08,dist:-0.02,acc:0.00,other:0.06,total:-0.02,final:1.43},
+  "Russell Henley":{baseline:1.62,major:0.12,misc:null,timing:-0.09,sgcats:-0.06,chist:-0.05,dist:-0.05,acc:0.03,other:0.11,total:-0.07,final:1.42},
+  "Chris Gotterup":{baseline:1.21,major:0.01,misc:null,timing:0.06,sgcats:0.03,chist:-0.01,dist:-0.05,acc:0.05,other:0.06,total:0.15,final:1.41},
+  "Viktor Hovland":{baseline:1.15,major:0.16,misc:null,timing:0.03,sgcats:0.06,chist:0.04,dist:-0.05,acc:0.00,other:0.04,total:0.01,final:1.41},
+  "Sam Burns":{baseline:1.29,major:0.08,misc:null,timing:0.01,sgcats:0.03,chist:-0.08,dist:-0.05,acc:0.03,other:0.02,total:0.11,final:1.39},
+  "Maverick McNealy":{baseline:1.24,major:0.04,misc:null,timing:0.04,sgcats:0.04,chist:-0.10,dist:-0.05,acc:0.02,other:0.01,total:0.10,final:1.31},
+  "Hideki Matsuyama":{baseline:1.02,major:0.21,misc:null,timing:-0.11,sgcats:0.04,chist:0.06,dist:0.00,acc:0.00,other:0.00,total:0.06,final:1.28},
+  "Kurt Kitayama":{baseline:0.97,major:0.04,misc:null,timing:0.05,sgcats:0.05,chist:0.16,dist:-0.05,acc:0.04,other:0.00,total:0.06,final:1.28},
+  "Jordan Spieth":{baseline:0.94,major:0.17,misc:null,timing:-0.05,sgcats:0.08,chist:0.09,dist:-0.04,acc:0.02,other:0.00,total:0.07,final:1.25},
+  "Patrick Reed":{baseline:0.96,major:0.23,misc:null,timing:-0.03,sgcats:0.10,chist:-0.02,dist:-0.01,acc:0.01,other:0.02,total:0.02,final:1.25},
+  "Brooks Koepka":{baseline:0.47,major:0.35,misc:null,timing:-0.05,sgcats:0.29,chist:0.12,dist:-0.02,acc:0.02,other:0.01,total:0.04,final:1.21},
+  "Justin Thomas":{baseline:0.87,major:-0.03,misc:null,timing:-0.03,sgcats:0.00,chist:0.31,dist:-0.01,acc:0.02,other:0.03,total:0.11,final:1.21},
+  "Tyrrell Hatton":{baseline:0.85,major:0.11,misc:null,timing:-0.01,sgcats:0.14,chist:0.06,dist:-0.01,acc:0.02,other:0.01,total:0.06,final:1.20},
+  "Justin Rose":{baseline:0.96,major:0.23,misc:null,timing:-0.17,sgcats:0.10,chist:-0.08,dist:0.11,acc:0.01,other:0.01,total:0.02,final:1.16},
+  "Jake Knapp":{baseline:1.23,major:-0.04,misc:null,timing:0.06,sgcats:-0.11,chist:-0.04,dist:-0.05,acc:0.04,other:0.02,total:0.11,final:1.15},
+  "Ben Griffin":{baseline:1.01,major:0.01,misc:null,timing:0.04,sgcats:-0.01,chist:0.07,dist:-0.05,acc:0.00,other:0.01,total:0.06,final:1.15},
+  "Thomas Detry":{baseline:0.90,major:0.10,misc:null,timing:0.00,sgcats:0.13,chist:-0.02,dist:-0.05,acc:0.02,other:0.01,total:0.08,final:1.14},
+  "Harris English":{baseline:1.13,major:0.12,misc:null,timing:-0.06,sgcats:0.03,chist:-0.07,dist:-0.05,acc:0.00,other:0.03,total:0.02,final:1.13},
+  "Keegan Bradley":{baseline:0.95,major:0.07,misc:null,timing:-0.07,sgcats:0.02,chist:0.07,dist:0.03,acc:0.01,other:0.01,total:0.05,final:1.12},
+  "Harry Hall":{baseline:1.03,major:-0.04,misc:null,timing:0.02,sgcats:0.02,chist:0.00,dist:-0.05,acc:0.00,other:0.02,total:0.10,final:1.08},
+  "Joaquin Niemann":{baseline:0.64,major:-0.01,misc:null,timing:0.02,sgcats:0.10,chist:0.29,dist:-0.05,acc:0.04,other:0.01,total:0.06,final:1.05},
+  "David Puig":{baseline:0.81,major:-0.04,misc:null,timing:0.03,sgcats:0.09,chist:0.05,dist:-0.05,acc:0.05,other:0.06,total:0.14,final:1.03},
+  "Alex Noren":{baseline:1.13,major:0.00,misc:null,timing:-0.08,sgcats:0.04,chist:-0.04,dist:-0.01,acc:0.02,other:0.05,total:-0.02,final:1.02},
+  "Alex Smalley":{baseline:0.94,major:-0.02,misc:null,timing:0.07,sgcats:0.09,chist:-0.05,dist:-0.05,acc:0.01,other:0.03,total:0.02,final:1.01},
+  "Shane Lowry":{baseline:1.10,major:0.14,misc:null,timing:-0.09,sgcats:0.01,chist:-0.10,dist:-0.05,acc:0.00,other:0.03,total:0.00,final:1.01},
+  "Akshay Bhatia":{baseline:1.12,major:0.01,misc:null,timing:0.09,sgcats:0.04,chist:-0.28,dist:-0.05,acc:0.00,other:0.01,total:0.07,final:1.00},
+  "Jacob Bridgeman":{baseline:0.92,major:-0.07,misc:null,timing:0.10,sgcats:0.04,chist:-0.04,dist:-0.05,acc:0.01,other:0.00,total:0.07,final:0.98},
+  "Sepp Straka":{baseline:0.94,major:0.02,misc:null,timing:-0.01,sgcats:0.07,chist:-0.01,dist:-0.05,acc:0.00,other:0.03,total:0.00,final:0.97},
+  "Kristoffer Reitan":{baseline:0.88,major:-0.07,misc:null,timing:0.07,sgcats:0.01,chist:0.05,dist:-0.05,acc:0.03,other:0.00,total:0.06,final:0.95},
+  "Gary Woodland":{baseline:0.75,major:0.04,misc:null,timing:-0.03,sgcats:0.19,chist:-0.11,dist:0.02,acc:0.04,other:0.01,total:0.05,final:0.91},
+  "Alex Fitzpatrick":{baseline:0.80,major:-0.08,misc:null,timing:0.06,sgcats:0.11,chist:0.06,dist:-0.05,acc:0.00,other:0.05,total:-0.02,final:0.88},
+  "Jason Day":{baseline:0.75,major:0.16,misc:null,timing:-0.13,sgcats:0.00,chist:0.01,dist:0.03,acc:0.00,other:0.01,total:0.05,final:0.87},
+  "Matthew McCarty":{baseline:0.92,major:-0.03,misc:null,timing:0.09,sgcats:0.05,chist:-0.12,dist:-0.05,acc:0.01,other:0.04,total:-0.01,final:0.85},
+  "Ryan Gerard":{baseline:0.73,major:0.01,misc:null,timing:0.06,sgcats:0.03,chist:0.07,dist:-0.05,acc:0.00,other:0.04,total:-0.02,final:0.83},
+  "Pierceson Coody":{baseline:0.60,major:-0.07,misc:null,timing:0.10,sgcats:0.04,chist:0.13,dist:-0.05,acc:0.04,other:0.01,total:0.05,final:0.80},
+  "Nick Taylor":{baseline:0.94,major:0.04,misc:null,timing:-0.06,sgcats:0.06,chist:-0.12,dist:-0.05,acc:0.02,other:0.04,total:-0.02,final:0.79},
+  "Sam Stevens":{baseline:0.52,major:0.01,misc:null,timing:0.04,sgcats:0.05,chist:0.17,dist:-0.05,acc:0.02,other:0.01,total:0.03,final:0.76},
+  "Michael Thorbjornsen":{baseline:0.63,major:-0.04,misc:null,timing:0.05,sgcats:-0.09,chist:0.19,dist:-0.05,acc:0.03,other:0.00,total:0.05,final:0.73},
+  "Ryo Hisatsune":{baseline:0.52,major:-0.03,misc:null,timing:0.06,sgcats:0.06,chist:0.16,dist:-0.05,acc:0.00,other:0.03,total:-0.01,final:0.72},
+  "Corey Conners":{baseline:0.76,major:0.09,misc:null,timing:-0.07,sgcats:0.05,chist:-0.01,dist:-0.05,acc:0.01,other:0.08,total:-0.07,final:0.71},
+  "Keith Mitchell":{baseline:0.66,major:0.01,misc:null,timing:-0.05,sgcats:-0.05,chist:0.10,dist:-0.02,acc:0.03,other:0.01,total:0.04,final:0.70},
+  "Sahith Theegala":{baseline:0.53,major:0.05,misc:null,timing:0.01,sgcats:0.08,chist:-0.01,dist:-0.05,acc:0.01,other:0.03,total:0.07,final:0.69},
+  "Bud Cauley":{baseline:0.51,major:-0.02,misc:null,timing:-0.05,sgcats:0.09,chist:0.21,dist:-0.05,acc:0.00,other:0.04,total:-0.03,final:0.67},
+  "Jordan L. Smith":{baseline:0.53,major:0.05,misc:null,timing:0.02,sgcats:-0.05,chist:0.17,dist:-0.05,acc:0.02,other:0.04,total:-0.02,final:0.66},
+  "Wyndham Clark":{baseline:0.55,major:0.01,misc:null,timing:0.00,sgcats:-0.08,chist:0.13,dist:-0.05,acc:0.02,other:0.03,total:0.08,final:0.65},
+  "Aaron Rai":{baseline:0.59,major:0.05,misc:null,timing:-0.01,sgcats:0.11,chist:0.09,dist:-0.05,acc:0.03,other:0.11,total:-0.13,final:0.65},
+  "Rasmus Hojgaard":{baseline:0.49,major:-0.01,misc:null,timing:0.04,sgcats:0.00,chist:0.02,dist:-0.05,acc:0.05,other:0.07,total:0.14,final:0.63},
+  "Brian Harman":{baseline:0.55,major:0.08,misc:null,timing:-0.04,sgcats:0.09,chist:0.02,dist:-0.08,acc:0.02,other:0.04,total:-0.02,final:0.61},
+  "J.T. Poston":{baseline:0.54,major:0.01,misc:null,timing:-0.02,sgcats:0.05,chist:0.12,dist:-0.05,acc:0.01,other:0.06,total:-0.05,final:0.60},
+  "Matt Wallace":{baseline:0.43,major:0.12,misc:null,timing:0.00,sgcats:0.09,chist:-0.01,dist:-0.05,acc:0.00,other:0.01,total:0.01,final:0.59},
+  "Sudarshan Yellamaraju":{baseline:0.50,major:-0.07,misc:null,timing:0.05,sgcats:0.05,chist:0.07,dist:-0.05,acc:0.02,other:0.01,total:0.03,final:0.59},
+  "Sungjae Im":{baseline:0.28,major:-0.01,misc:null,timing:0.04,sgcats:0.13,chist:0.17,dist:-0.05,acc:0.00,other:0.03,total:0.01,final:0.57},
+  "Jayden Trey Schaper":{baseline:0.67,major:-0.10,misc:null,timing:0.05,sgcats:-0.04,chist:0.08,dist:-0.05,acc:0.02,other:0.07,total:-0.06,final:0.56},
+  "Ryan Fox":{baseline:0.47,major:0.08,misc:null,timing:-0.05,sgcats:0.03,chist:-0.01,dist:-0.05,acc:0.02,other:0.06,total:0.09,final:0.56},
+  "Taylor Pendrith":{baseline:0.34,major:0.06,misc:null,timing:0.04,sgcats:-0.02,chist:0.15,dist:-0.05,acc:0.03,other:0.01,total:0.04,final:0.55},
+  "Daniel Berger":{baseline:0.59,major:0.01,misc:null,timing:-0.08,sgcats:0.10,chist:0.00,dist:-0.05,acc:0.01,other:0.05,total:-0.04,final:0.55},
+  "Christiaan Bezuidenhout":{baseline:0.63,major:0.05,misc:null,timing:0.02,sgcats:0.06,chist:-0.14,dist:-0.05,acc:0.04,other:0.05,total:-0.03,final:0.54},
+  "Tom McKibbin":{baseline:0.23,major:-0.07,misc:null,timing:0.05,sgcats:0.04,chist:0.35,dist:-0.05,acc:0.02,other:0.05,total:-0.04,final:0.52},
+  "Andrew Putnam":{baseline:0.54,major:0.06,misc:null,timing:-0.07,sgcats:0.11,chist:-0.04,dist:0.01,acc:0.07,other:0.12,total:-0.13,final:0.48},
+  "Daniel Hillier":{baseline:0.64,major:-0.06,misc:null,timing:-0.03,sgcats:-0.16,chist:0.10,dist:-0.05,acc:0.03,other:0.00,total:0.02,final:0.47},
+  "Andrew Novak":{baseline:0.36,major:-0.07,misc:null,timing:0.04,sgcats:0.07,chist:0.07,dist:-0.05,acc:0.00,other:0.00,total:0.02,final:0.44},
+  "Angel Ayora Fanegas":{baseline:0.50,major:-0.15,misc:null,timing:0.02,sgcats:-0.06,chist:0.12,dist:-0.05,acc:0.04,other:0.02,total:0.05,final:0.44},
+  "Ricky Castillo":{baseline:0.29,major:-0.08,misc:null,timing:0.07,sgcats:0.03,chist:0.13,dist:-0.05,acc:0.02,other:0.00,total:0.04,final:0.44},
+  "Denny McCarthy":{baseline:0.46,major:0.09,misc:null,timing:-0.07,sgcats:0.04,chist:-0.09,dist:-0.05,acc:0.02,other:0.00,total:0.04,final:0.43},
+  "Michael Kim":{baseline:0.53,major:0.01,misc:null,timing:-0.05,sgcats:0.07,chist:-0.21,dist:-0.05,acc:0.01,other:0.03,total:0.07,final:0.39},
+  "Max Homa":{baseline:0.38,major:0.01,misc:null,timing:-0.05,sgcats:0.09,chist:-0.05,dist:-0.05,acc:0.01,other:0.02,total:0.05,final:0.37},
+  "Michael Brennan":{baseline:0.34,major:-0.05,misc:null,timing:0.15,sgcats:-0.16,chist:0.12,dist:-0.05,acc:0.05,other:0.00,total:0.02,final:0.37},
+  "John Parry":{baseline:0.39,major:0.01,misc:null,timing:0.01,sgcats:0.01,chist:-0.02,dist:-0.05,acc:0.01,other:0.03,total:-0.03,final:0.31},
+  "Patrick Rodgers":{baseline:0.35,major:0.02,misc:null,timing:-0.03,sgcats:0.07,chist:-0.14,dist:-0.05,acc:0.02,other:0.04,total:0.08,final:0.31},
+  "Marco Penge":{baseline:0.18,major:-0.05,misc:null,timing:0.10,sgcats:-0.19,chist:0.19,dist:-0.05,acc:0.06,other:0.07,total:0.11,final:0.30},
+  "Max Greyserman":{baseline:0.22,major:0.04,misc:null,timing:0.01,sgcats:-0.01,chist:-0.03,dist:-0.05,acc:0.02,other:0.07,total:0.12,final:0.29},
+  "Stewart Cink":{baseline:0.14,major:0.11,misc:null,timing:-0.09,sgcats:0.17,chist:-0.02,dist:-0.05,acc:0.00,other:0.00,total:0.01,final:0.29},
+  "Dustin Johnson":{baseline:0.18,major:0.13,misc:null,timing:-0.08,sgcats:0.15,chist:-0.12,dist:-0.03,acc:0.02,other:0.03,total:0.06,final:0.28},
+  "Rico Hoey":{baseline:0.14,major:-0.09,misc:null,timing:0.09,sgcats:0.03,chist:0.16,dist:-0.05,acc:0.02,other:0.02,total:-0.02,final:0.26},
+  "Hao-Tong Li":{baseline:0.09,major:0.08,misc:null,timing:0.11,sgcats:-0.05,chist:0.08,dist:-0.05,acc:0.02,other:0.00,total:0.00,final:0.26},
+  "Casey Jarvis":{baseline:0.42,major:-0.12,misc:null,timing:0.01,sgcats:-0.04,chist:0.02,dist:-0.05,acc:0.01,other:0.04,total:-0.05,final:0.20},
+  "Max McGreevy":{baseline:0.35,major:-0.08,misc:null,timing:0.01,sgcats:-0.03,chist:0.07,dist:-0.05,acc:0.01,other:0.07,total:-0.08,final:0.20},
+  "Rasmus Neergaard-Petersen":{baseline:0.15,major:-0.06,misc:null,timing:0.07,sgcats:-0.04,chist:0.14,dist:-0.05,acc:0.01,other:0.02,total:-0.02,final:0.20},
+  "Steven Fisk":{baseline:0.10,major:-0.07,misc:null,timing:0.03,sgcats:0.06,chist:0.08,dist:-0.05,acc:0.02,other:0.01,total:0.04,final:0.19},
+  "Mikael Lindberg":{baseline:0.12,major:-0.12,misc:null,timing:-0.06,sgcats:-0.02,chist:0.19,dist:-0.05,acc:0.06,other:0.05,total:0.09,final:0.15},
+  "Austin Smotherman":{baseline:0.16,major:-0.07,misc:null,timing:-0.03,sgcats:0.09,chist:0.14,dist:-0.05,acc:0.00,other:0.06,total:-0.09,final:0.14},
+  "Aldrich Potgieter":{baseline:-0.12,major:-0.09,misc:null,timing:0.08,sgcats:0.08,chist:0.10,dist:-0.05,acc:0.07,other:0.06,total:0.09,final:0.10},
+  "Cameron Smith":{baseline:0.04,major:0.13,misc:null,timing:-0.01,sgcats:0.06,chist:-0.21,dist:-0.05,acc:0.01,other:0.08,total:0.13,final:0.09},
+  "William Mouw":{baseline:0.18,major:-0.07,misc:null,timing:0.03,sgcats:-0.12,chist:0.08,dist:-0.05,acc:0.02,other:0.01,total:0.00,final:0.05},
+  "Matti Schmid":{baseline:0.00,major:-0.05,misc:null,timing:-0.01,sgcats:0.00,chist:0.06,dist:-0.05,acc:0.03,other:0.04,total:0.07,final:0.04},
+  "Chris Kirk":{baseline:0.30,major:0.05,misc:null,timing:-0.17,sgcats:-0.20,chist:0.05,dist:0.04,acc:0.01,other:0.02,total:-0.05,final:0.03},
+  "Stephan Jaeger":{baseline:0.06,major:-0.03,misc:null,timing:-0.09,sgcats:0.02,chist:-0.03,dist:-0.05,acc:0.02,other:0.08,total:0.13,final:0.01},
+  "Bernd Wiesberger":{baseline:-0.06,major:0.00,misc:null,timing:-0.08,sgcats:0.17,chist:0.09,dist:-0.05,acc:0.02,other:0.04,total:-0.08,final:0.00},
+  "John Keefer":{baseline:-0.10,major:-0.09,misc:null,timing:0.11,sgcats:-0.01,chist:0.08,dist:-0.05,acc:0.03,other:0.02,total:0.02,final:-0.04},
+  "Billy Horschel":{baseline:0.03,major:0.05,misc:null,timing:-0.13,sgcats:0.01,chist:-0.10,dist:0.02,acc:0.01,other:0.03,total:0.03,final:-0.10},
+  "Sami Valimaki":{baseline:0.04,major:-0.08,misc:null,timing:0.06,sgcats:-0.06,chist:0.01,dist:-0.05,acc:0.01,other:0.03,total:-0.03,final:-0.11},
+  "Brandt Snedeker":{baseline:-0.03,major:0.19,misc:null,timing:-0.11,sgcats:0.15,chist:-0.21,dist:-0.02,acc:0.06,other:0.07,total:-0.11,final:-0.13},
+  "Nicolas Echavarria":{baseline:0.05,major:-0.02,misc:null,timing:-0.01,sgcats:-0.01,chist:-0.09,dist:-0.05,acc:0.02,other:0.02,total:-0.03,final:-0.16},
+  "Ian Holt":{baseline:0.05,major:-0.07,misc:null,timing:0.01,sgcats:-0.13,chist:0.01,dist:-0.05,acc:0.01,other:0.01,total:0.00,final:-0.18},
+  "Lucas Glover":{baseline:0.24,major:-0.04,misc:null,timing:-0.12,sgcats:-0.01,chist:-0.13,dist:0.00,acc:0.04,other:0.09,total:-0.14,final:-0.22},
+  "David Lipsky":{baseline:-0.02,major:-0.03,misc:null,timing:-0.01,sgcats:0.06,chist:-0.16,dist:-0.05,acc:0.03,other:0.03,total:-0.05,final:-0.26},
+  "Daniel Brown":{baseline:-0.05,major:-0.04,misc:null,timing:0.05,sgcats:-0.05,chist:-0.07,dist:-0.05,acc:0.02,other:0.04,total:-0.06,final:-0.28},
+  "Garrick Higgo":{baseline:-0.39,major:-0.04,misc:null,timing:0.05,sgcats:-0.10,chist:0.18,dist:-0.05,acc:0.01,other:0.04,total:0.04,final:-0.31},
+  "Jhonattan Vegas":{baseline:-0.26,major:-0.01,misc:null,timing:-0.13,sgcats:0.03,chist:0.05,dist:-0.02,acc:0.01,other:0.03,total:0.02,final:-0.34},
+  "Chandler Blanchet":{baseline:-0.08,major:-0.07,misc:null,timing:0.05,sgcats:-0.04,chist:-0.01,dist:-0.05,acc:0.02,other:0.08,total:-0.14,final:-0.35},
+  "Adrien Saddier":{baseline:-0.28,major:-0.07,misc:null,timing:0.05,sgcats:-0.21,chist:0.26,dist:-0.05,acc:0.01,other:0.04,total:-0.07,final:-0.36},
+  "Emiliano Grillo":{baseline:-0.27,major:0.00,misc:null,timing:0.00,sgcats:-0.07,chist:0.13,dist:-0.04,acc:0.02,other:0.07,total:-0.12,final:-0.38},
+  "Elvis Smylie":{baseline:-0.34,major:-0.13,misc:null,timing:0.05,sgcats:-0.03,chist:0.02,dist:-0.05,acc:0.00,other:0.00,total:0.00,final:-0.48},
+  "Kota Kaneko":{baseline:-0.10,major:-0.15,misc:null,timing:0.04,sgcats:-0.01,chist:-0.12,dist:-0.05,acc:0.06,other:0.07,total:-0.11,final:-0.49},
+  "Joe Highsmith":{baseline:-0.85,major:-0.03,misc:null,timing:0.06,sgcats:0.12,chist:0.03,dist:-0.05,acc:0.00,other:0.03,total:0.01,final:-0.71},
+  "Brian Campbell":{baseline:-0.55,major:0.06,misc:null,timing:-0.01,sgcats:0.12,chist:-0.19,dist:-0.05,acc:0.07,other:0.06,total:-0.11,final:-0.73},
+  "Andy Sullivan":{baseline:-0.36,major:-0.12,misc:null,timing:-0.02,sgcats:-0.14,chist:-0.03,dist:-0.05,acc:0.04,other:0.03,total:-0.08,final:-0.79},
+  "Adam Schenk":{baseline:-0.97,major:0.01,misc:null,timing:0.00,sgcats:0.02,chist:0.17,dist:-0.05,acc:0.00,other:0.04,total:0.00,final:-0.81},
+  "Davis Riley":{baseline:-0.99,major:0.01,misc:null,timing:0.02,sgcats:0.04,chist:-0.02,dist:-0.05,acc:0.00,other:0.10,total:0.11,final:-0.89},
+  "Travis Smyth":{baseline:-0.64,major:-0.16,misc:null,timing:0.01,sgcats:-0.12,chist:-0.03,dist:-0.05,acc:0.01,other:0.04,total:0.01,final:-0.98},
+  "Martin Kaymer":{baseline:-0.91,major:0.09,misc:null,timing:-0.04,sgcats:0.08,chist:-0.17,dist:-0.05,acc:0.04,other:0.02,total:-0.04,final:-1.03},
+  "Padraig Harrington":{baseline:-1.31,major:0.10,misc:null,timing:-0.09,sgcats:0.12,chist:-0.05,dist:-0.05,acc:0.01,other:0.04,total:-0.03,final:-1.31},
+  "Kazuki Higa":{baseline:-0.95,major:-0.19,misc:null,timing:0.01,sgcats:-0.10,chist:-0.01,dist:-0.05,acc:0.04,other:0.04,total:-0.11,final:-1.41},
+  "Jordan Gumberg":{baseline:-1.34,major:-0.06,misc:null,timing:-0.05,sgcats:-0.07,chist:0.21,dist:-0.05,acc:0.01,other:0.07,total:-0.18,final:-1.54},
+  "Y.E. Yang":{baseline:-1.75,major:0.08,misc:null,timing:-0.09,sgcats:0.08,chist:-0.01,dist:-0.04,acc:0.04,other:0.00,total:-0.09,final:-1.82},
+  "Jason Dufner":{baseline:-1.62,major:0.12,misc:null,timing:-0.07,sgcats:-0.08,chist:-0.08,dist:-0.05,acc:0.04,other:0.01,total:-0.13,final:-1.90},
+  "Luke Donald":{baseline:-1.30,major:0.03,misc:null,timing:-0.19,sgcats:-0.30,chist:-0.17,dist:-0.05,acc:0.06,other:0.02,total:-0.07,final:-2.04},
+  "Derek Berg":{baseline:-1.73,major:-0.07,misc:null,timing:0.00,sgcats:-0.21,chist:-0.01,dist:-0.05,acc:0.02,other:0.02,total:-0.07,final:-2.14},
+  "Ben Kern":{baseline:-1.62,major:-0.02,misc:null,timing:-0.09,sgcats:-0.46,chist:0.03,dist:-0.05,acc:0.02,other:0.01,total:-0.14,final:-2.34},
+  "Jimmy Walker":{baseline:-1.91,major:0.07,misc:null,timing:-0.16,sgcats:-0.40,chist:0.01,dist:-0.02,acc:0.00,other:0.08,total:-0.01,final:-2.42},
+  "Tyler Collet":{baseline:-2.53,major:-0.07,misc:null,timing:0.04,sgcats:0.15,chist:-0.17,dist:-0.05,acc:0.04,other:0.05,total:-0.06,final:-2.68},
+  "Ben Polland":{baseline:-2.24,major:-0.04,misc:null,timing:-0.07,sgcats:-0.28,chist:-0.01,dist:-0.05,acc:0.03,other:0.03,total:-0.09,final:-2.79},
+  "Jared Jones":{baseline:-2.97,major:-0.07,misc:null,timing:-0.08,sgcats:0.06,chist:0.39,dist:-0.05,acc:0.01,other:0.05,total:-0.10,final:-2.83},
+  "Ryan Vermeer":{baseline:-2.71,major:-0.01,misc:null,timing:-0.22,sgcats:-0.21,chist:0.11,dist:-0.05,acc:0.02,other:0.07,total:-0.07,final:-3.16},
+  "Michael Kartrude":{baseline:-2.71,major:-0.07,misc:null,timing:-0.05,sgcats:-0.31,chist:-0.02,dist:-0.05,acc:0.03,other:0.04,total:-0.11,final:-3.30},
+  "Braden Shattuck":{baseline:-2.99,major:-0.04,misc:null,timing:0.07,sgcats:-0.28,chist:-0.18,dist:-0.05,acc:0.01,other:0.13,total:0.03,final:-3.43},
+  "Michael Block":{baseline:-3.03,major:0.01,misc:null,timing:-0.11,sgcats:-0.35,chist:-0.17,dist:-0.05,acc:0.05,other:0.01,total:-0.19,final:-3.89},
+  "Austin Hurt":{baseline:-4.04,major:-0.08,misc:null,timing:0.23,sgcats:-0.21,chist:0.09,dist:-0.05,acc:0.03,other:0.05,total:-0.14,final:-4.19},
+  "Bryce Fisher":{baseline:-4.05,major:-0.07,misc:null,timing:0.00,sgcats:0.00,chist:0.00,dist:-0.05,acc:0.03,other:0.04,total:-0.14,final:-4.31},
+  "Paul McClure":{baseline:-4.05,major:-0.07,misc:null,timing:0.00,sgcats:0.00,chist:0.00,dist:-0.05,acc:0.03,other:0.04,total:-0.14,final:-4.31},
+  "Zach Haynes":{baseline:-4.05,major:-0.07,misc:null,timing:0.00,sgcats:0.00,chist:0.00,dist:-0.05,acc:0.03,other:0.04,total:-0.14,final:-4.31},
+  "Chris Gabriele":{baseline:-4.05,major:-0.07,misc:null,timing:0.00,sgcats:0.00,chist:0.00,dist:-0.05,acc:0.03,other:0.04,total:-0.14,final:-4.31},
+  "Shaun Micheel":{baseline:-3.78,major:0.06,misc:null,timing:-0.12,sgcats:-0.44,chist:-0.03,dist:-0.03,acc:0.07,other:0.01,total:-0.21,final:-4.55},
+  "Ryan Lenahan":{baseline:-4.19,major:-0.07,misc:null,timing:-0.05,sgcats:0.05,chist:-0.26,dist:-0.05,acc:0.03,other:0.11,total:-0.07,final:-4.63},
+  "Jesse Droemer":{baseline:-3.96,major:-0.06,misc:null,timing:0.03,sgcats:-0.27,chist:-0.11,dist:-0.05,acc:0.04,other:0.03,total:-0.21,final:-4.64},
+  "Garrett Sapp":{baseline:-3.99,major:-0.07,misc:null,timing:-0.05,sgcats:-1.44,chist:-0.02,dist:-0.05,acc:0.04,other:0.01,total:-0.23,final:-5.85},
+  "Mark Geddes":{baseline:-4.48,major:-0.06,misc:null,timing:0.01,sgcats:-1.23,chist:-0.04,dist:-0.05,acc:0.05,other:0.08,total:-0.18,final:-6.03},
+  "Francisco Bide":{baseline:-4.33,major:-0.11,misc:null,timing:-0.02,sgcats:-1.57,chist:-0.02,dist:-0.05,acc:0.05,other:0.08,total:-0.19,final:-6.28},
+  "Timothy Wiseman":{baseline:-5.09,major:-0.06,misc:null,timing:0.03,sgcats:-1.15,chist:0.01,dist:-0.05,acc:0.04,other:0.09,total:-0.19,final:-6.51},
+};
+
 const MAJOR_HISTORY = {
   "Scottie Scheffler":   {major_wins:4,pga_wins:1,major_top5:11,major_top10:15,major_starts:28,masters_2026:"2",  pga_2025:"WIN",us_open_2025:"T7", open_2025:"WIN",masters_2025:"T5", note:"World #1, 4-time major champ"},
   "Rory McIlroy":        {major_wins:6,pga_wins:2,major_top5:20,major_top10:34,major_starts:68,masters_2026:"WIN",pga_2025:"T47",us_open_2025:"T19",open_2025:"T7", masters_2025:"WIN",note:"Career Grand Slam, back-to-back Masters"},
@@ -1248,6 +1448,21 @@ PLAYERS.forEach(p => {
     p.us_open_2025 = '—'; p.open_2025 = '—'; p.masters_2025 = '—';
     p.major_note = ''; p.best_2025 = '—'; p.recent_pts = 0; p.pedigree_score = 0;
   }
+  const adj = MODEL_ADJ[p.name];
+  if (adj) {
+    p.has_model = true;
+    p.baseline_sg = adj.baseline;
+    p.adj_major = adj.major; p.adj_misc = adj.misc; p.adj_timing = adj.timing;
+    p.adj_sgcats = adj.sgcats; p.adj_chist = adj.chist;
+    p.adj_dist = adj.dist; p.adj_acc = adj.acc; p.adj_other = adj.other;
+    p.adj_total = adj.total; p.final_sg = adj.final;
+  } else {
+    p.has_model = false;
+    p.baseline_sg = null; p.final_sg = null;
+    p.adj_major = null; p.adj_misc = null; p.adj_timing = null;
+    p.adj_sgcats = null; p.adj_chist = null;
+    p.adj_dist = null; p.adj_acc = null; p.adj_other = null; p.adj_total = null;
+  }
 });
 
 // =============== TABS ===============
@@ -1261,6 +1476,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'builder') renderBuilder();
     if (btn.dataset.tab === 'form') renderForm();
     if (btn.dataset.tab === 'major') renderMajorHist();
+    if (btn.dataset.tab === 'model') renderModel();
   });
 });
 
@@ -1586,6 +1802,78 @@ document.querySelectorAll('[data-mfilter]').forEach(chip => {
 document.getElementById('majorSearch').addEventListener('input', e => {
   mSearch = e.target.value.toLowerCase();
   renderMajorHist();
+});
+
+// =============== MODEL TAB ===============
+let modelSort = 'final_sg', modelDir = 'desc', modelFilter = 'all', modelSearch = '';
+
+function fmtAdj(v) {
+  if (v === null || v === undefined) return '<span style="color:var(--ink-3)">—</span>';
+  const cls = v > 0.05 ? 'sg-strong' : (v < -0.05 ? 'sg-weak' : '');
+  const sign = v > 0 ? '+' : '';
+  return `<span class="${cls}">${sign}${v.toFixed(2)}</span>`;
+}
+function fmtFinal(v) {
+  if (v === null || v === undefined) return '—';
+  const sign = v > 0 ? '+' : '';
+  const cls = v >= 1.5 ? 'sg-strong' : (v < 0 ? 'sg-weak' : '');
+  return `<span class="${cls}"><strong>${sign}${v.toFixed(2)}</strong></span>`;
+}
+
+function renderModel() {
+  let filtered = PLAYERS.filter(p => p.has_model);
+  if (modelFilter === 'positive')         filtered = filtered.filter(p => p.final_sg > 0);
+  else if (modelFilter === 'top30')       filtered = filtered.slice().sort((a,b)=>b.final_sg-a.final_sg).slice(0,30);
+  else if (modelFilter === 'best-fit')    filtered = filtered.filter(p => (p.adj_dist + p.adj_acc + p.adj_other) >= 0.10);
+  else if (modelFilter === 'best-history')filtered = filtered.filter(p => p.adj_chist >= 0.10);
+  if (modelSearch) filtered = filtered.filter(p => p.name.toLowerCase().includes(modelSearch));
+  filtered.sort((a,b) => {
+    let av = a[modelSort], bv = b[modelSort];
+    if (av === null || av === undefined) av = -999;
+    if (bv === null || bv === undefined) bv = -999;
+    if (typeof av === 'string') return modelDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
+    return modelDir === 'desc' ? bv - av : av - bv;
+  });
+  document.getElementById('modelTbody').innerHTML = filtered.map((p, i) => `
+    <tr>
+      <td class="num" style="color:var(--ink-3);font-weight:700">${i + 1}</td>
+      <td><div class="player-name">${p.name}</div><div class="player-archetype">${p.arch}</div></td>
+      <td class="num">${fmtFinal(p.final_sg)}</td>
+      <td class="num">${(p.baseline_sg >= 0 ? '+' : '') + p.baseline_sg.toFixed(2)}</td>
+      <td class="num hide-mobile">${fmtAdj(p.adj_major)}</td>
+      <td class="num hide-mobile">${fmtAdj(p.adj_timing)}</td>
+      <td class="num hide-mobile">${fmtAdj(p.adj_sgcats)}</td>
+      <td class="num">${fmtAdj(p.adj_chist)}</td>
+      <td class="num hide-mobile">${fmtAdj(p.adj_dist)}</td>
+      <td class="num hide-mobile">${fmtAdj(p.adj_acc)}</td>
+      <td class="num hide-mobile">${fmtAdj(p.adj_other)}</td>
+      <td class="num">${fmtAdj(p.adj_total)}</td>
+      <td class="num">${fmtSal(p.salary)}</td>
+    </tr>`).join('');
+}
+
+document.querySelectorAll('#modelTable th[data-modelsort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.modelsort;
+    if (modelSort === col) modelDir = modelDir === 'desc' ? 'asc' : 'desc';
+    else { modelSort = col; modelDir = (col === 'name') ? 'asc' : 'desc'; }
+    document.querySelectorAll('#modelTable th').forEach(t => t.classList.remove('sort-active'));
+    th.classList.add('sort-active');
+    th.textContent = th.textContent.replace(/[▼▲]/g,'').trim() + (modelDir === 'desc' ? ' ▼' : ' ▲');
+    renderModel();
+  });
+});
+document.querySelectorAll('[data-modelfilter]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('[data-modelfilter]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    modelFilter = chip.dataset.modelfilter;
+    renderModel();
+  });
+});
+document.getElementById('modelSearch').addEventListener('input', e => {
+  modelSearch = e.target.value.toLowerCase();
+  renderModel();
 });
 
 // =============== BUILDER ===============
