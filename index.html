@@ -376,6 +376,32 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
 .value-card .stat .val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .value-card .why{font-size:13px;color:var(--ink-2);font-style:italic;line-height:1.45}
 
+/* Floating Lineup Builder */
+.float-builder{
+  position:fixed;right:18px;bottom:18px;width:320px;
+  max-height:min(80vh, 640px);
+  background:var(--paper-2);border:1px solid var(--rule);
+  border-radius:4px;box-shadow:0 10px 36px rgba(26,24,20,0.18),0 2px 6px rgba(26,24,20,0.08);
+  z-index:200;display:flex;flex-direction:column;
+  transition:max-height 0.22s ease, transform 0.22s ease;
+}
+.float-builder.collapsed{max-height:48px;overflow:hidden}
+.fb-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;background:var(--ink);color:var(--paper);
+  border:none;padding:10px 14px;cursor:pointer;
+  border-radius:4px 4px 0 0;font-family:'JetBrains Mono',monospace;
+}
+.float-builder.collapsed .fb-toggle{border-radius:4px}
+.fb-toggle-label{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.fb-title{font-family:'Fraunces',serif;font-size:14px;font-weight:800;letter-spacing:-0.01em}
+.fb-mini{font-size:10px;letter-spacing:0.04em;color:var(--paper-3);opacity:0.9}
+.fb-caret{font-size:10px;transition:transform 0.2s;opacity:0.85}
+.float-builder.collapsed .fb-caret{transform:rotate(180deg)}
+.fb-body{padding:14px;overflow-y:auto;flex:1}
+@media(max-width:640px){
+  .float-builder{left:12px;right:12px;width:auto;bottom:12px;max-height:min(70vh,560px)}
+}
 footer{
   border-top:3px double var(--ink);padding:24px;text-align:center;
   font-family:'JetBrains Mono',monospace;font-size:10px;
@@ -475,7 +501,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Monday, May 11, 2026 &middot; 22:32 UTC<br>
+      Tuesday, May 12, 2026 &middot; 12:06 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -704,6 +730,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
         <th class="num" data-fsort="cash_proj">Proj</th>
         <th data-fsort="form_tag">Form</th>
         <th data-fsort="tag">Status</th>
+        <th>Add</th>
       </tr>
     </thead>
     <tbody id="formTbody"></tbody>
@@ -743,6 +770,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
         <th class="num" data-msort="salary">Sal</th>
         <th class="num" data-msort="cash_proj">Proj</th>
         <th data-msort="tag">Tag</th>
+        <th>Add</th>
       </tr>
     </thead>
     <tbody id="majorTbody"></tbody>
@@ -782,6 +810,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
         <th class="num hide-mobile" data-modelsort="adj_other">Other</th>
         <th class="num" data-modelsort="adj_total">Total</th>
         <th class="num" data-modelsort="salary">Sal</th>
+        <th>Add</th>
       </tr>
     </thead>
     <tbody id="modelTbody"></tbody>
@@ -832,23 +861,8 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
       </table>
     </div>
 
-    <aside class="lineup-card">
-      <h3>Lineup #1</h3>
-      <div class="lineup-stats">
-        <div class="lineup-stat"><div class="label">Salary</div><div class="value" id="lu-salary">$0</div></div>
-        <div class="lineup-stat"><div class="label">Cap Left</div><div class="value" id="lu-cap">$50,000</div></div>
-        <div class="lineup-stat"><div class="label">Σ Proj</div><div class="value" id="lu-proj">0.0</div></div>
-        <div class="lineup-stat"><div class="label">Σ Ceil</div><div class="value" id="lu-ceil">0.0</div></div>
-        <div class="lineup-stat"><div class="label">Studs</div><div class="value" id="lu-studs">0/2</div></div>
-        <div class="lineup-stat"><div class="label">Form Tags</div><div class="value" id="lu-tags">0</div></div>
-      </div>
-      <div class="lineup-slots" id="lineupSlots"></div>
-      <div class="lineup-actions">
-        <button class="lineup-btn secondary" id="btn-clear">Clear</button>
-        <button class="lineup-btn" id="btn-optimize" title="Max projection, 6 players, $49,000–$50,000">Optimize</button>
-        <button class="lineup-btn" id="btn-save">Save</button>
-      </div>
-      <div id="lu-warnings" style="margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--warn);line-height:1.5"></div>
+    <aside class="lineup-card" style="display:none">
+      <p style="font-size:12px;color:var(--ink-3);font-style:italic">Lineup moved to the floating panel &#8594;</p>
     </aside>
   </div>
 </section>
@@ -1012,8 +1026,40 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 
 </main>
 
+<!-- Floating Lineup Builder (visible on every tab) -->
+<aside class="float-builder collapsed" id="floatBuilder" aria-label="Lineup Builder">
+  <button class="fb-toggle" id="fb-toggle" type="button" aria-expanded="false">
+    <span class="fb-toggle-label">
+      <span class="fb-title">Lineup #1</span>
+      <span class="fb-mini mono">
+        $<span id="lu-salary-mini">0</span>
+        &middot; <span id="lu-count-mini">0</span>/6
+        &middot; proj <span id="lu-proj-mini">0</span>
+      </span>
+    </span>
+    <span class="fb-caret">&#9650;</span>
+  </button>
+  <div class="fb-body">
+    <div class="lineup-stats">
+      <div class="lineup-stat"><div class="label">Salary</div><div class="value" id="lu-salary">$0</div></div>
+      <div class="lineup-stat"><div class="label">Cap Left</div><div class="value" id="lu-cap">$50,000</div></div>
+      <div class="lineup-stat"><div class="label">&Sigma; Proj</div><div class="value" id="lu-proj">0.0</div></div>
+      <div class="lineup-stat"><div class="label">&Sigma; Ceil</div><div class="value" id="lu-ceil">0.0</div></div>
+      <div class="lineup-stat"><div class="label">Studs</div><div class="value" id="lu-studs">0/2</div></div>
+      <div class="lineup-stat"><div class="label">Form Tags</div><div class="value" id="lu-tags">0</div></div>
+    </div>
+    <div class="lineup-slots" id="lineupSlots"></div>
+    <div class="lineup-actions">
+      <button class="lineup-btn secondary" id="btn-clear" type="button">Clear</button>
+      <button class="lineup-btn" id="btn-optimize" title="Max projection, 6 players, $49,500&ndash;$49,900" type="button">Optimize</button>
+      <button class="lineup-btn" id="btn-save" type="button">Save</button>
+    </div>
+    <div id="lu-warnings" style="margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--warn);line-height:1.5"></div>
+  </div>
+</aside>
+
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/11/2026 22:32 UTC &middot; Lessons 12&ndash;18 active &middot; Built on the bones of the Truist post-mortem
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 12:06 UTC &middot; Lessons 12&ndash;18 active &middot; Built on the bones of the Truist post-mortem
 </footer>
 
 <script>
@@ -1565,10 +1611,15 @@ function renderValue(){
   // Top value plays: sort by value, filter to legit candidates (sg!=null OR salary>=6500)
   const candidates = PLAYERS.filter(p => p.tag !== 'FADE' && (p.sg !== null || p.salary >= 6500))
     .sort((a,b) => b.value - a.value).slice(0,12);
-  grid.innerHTML = candidates.map(p => `
-    <div class="value-card">
-      <div class="header">
-        <div class="name">${p.name}</div>
+  grid.innerHTML = candidates.map(p => {
+    const inL = LINEUP.find(x => x.name === p.name);
+    return `
+    <div class="value-card ${inL ? 'in-lineup' : ''}" style="${inL ? 'background:rgba(212,169,58,0.15)' : ''}">
+      <div class="header" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <button class="add-btn ${inL ? 'added' : ''}" data-name="${p.name}" style="flex:0 0 auto">${inL ? '✓' : '+'}</button>
+          <div class="name">${p.name}</div>
+        </div>
         <div class="salary">${fmtSal(p.salary)}</div>
       </div>
       <div class="stats">
@@ -1577,8 +1628,9 @@ function renderValue(){
         <div class="stat"><div class="label">SG</div><div class="val">${p.sg !== null ? (p.sg>=0?'+':'')+p.sg.toFixed(2) : '—'}</div></div>
       </div>
       <div class="why">${p.note}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+  bindAddButtons();
 }
 
 // =============== FORM + DG TAB ===============
@@ -1611,8 +1663,9 @@ function renderForm(){
   });
   document.getElementById('formTbody').innerHTML = filtered.map(p => {
     const hot = p.dg_baseline !== null && p.dg_baseline >= 0.80 ? ' hot' : '';
+    const inL = LINEUP.find(x => x.name === p.name);
     return `
-    <tr class="${hot}">
+    <tr class="${hot}${inL ? ' in-lineup' : ''}">
       <td><div class="player-name">${p.name}</div><div class="player-archetype">${p.arch}</div></td>
       <td class="num">${fmtForm(p.form_score)}</td>
       <td class="num hide-mobile">${p.dg_sg !== null ? (p.dg_sg>=0?'+':'')+p.dg_sg.toFixed(2) : '<span style="color:var(--ink-3)">—</span>'}</td>
@@ -1622,8 +1675,10 @@ function renderForm(){
       <td class="num">${p.cash_proj.toFixed(1)}</td>
       <td><span class="tag ${p.form_tag}">${p.form_tag}</span></td>
       <td><span class="tag ${p.tag}">${p.tag}</span></td>
+      <td><button class="add-btn ${inL ? 'added' : ''}" data-name="${p.name}">${inL ? '✓' : '+'}</button></td>
     </tr>`;
   }).join('');
+  bindAddButtons();
 }
 
 document.querySelectorAll('#formTable th[data-fsort]').forEach(th => {
@@ -1765,8 +1820,10 @@ function renderMajorHist(){
     if (typeof av === 'string') return mDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
     return mDir === 'desc' ? bv - av : av - bv;
   });
-  document.getElementById('majorTbody').innerHTML = filtered.map((p, i) => `
-    <tr>
+  document.getElementById('majorTbody').innerHTML = filtered.map((p, i) => {
+    const inL = LINEUP.find(x => x.name === p.name);
+    return `
+    <tr class="${inL ? 'in-lineup' : ''}">
       <td class="num" style="color:var(--ink-3);font-weight:700">${i + 1}</td>
       <td><div class="player-name">${p.name}</div><div class="player-archetype">${p.major_note || p.arch}</div></td>
       <td class="num"><strong>${p.pedigree_score.toFixed(0)}</strong></td>
@@ -1777,7 +1834,10 @@ function renderMajorHist(){
       <td class="num">${fmtSal(p.salary)}</td>
       <td class="num">${p.cash_proj.toFixed(1)}</td>
       <td><span class="tag ${p.tag}">${p.tag}</span></td>
-    </tr>`).join('');
+      <td><button class="add-btn ${inL ? 'added' : ''}" data-name="${p.name}">${inL ? '✓' : '+'}</button></td>
+    </tr>`;
+  }).join('');
+  bindAddButtons();
 }
 
 document.querySelectorAll('#majorTable th[data-msort]').forEach(th => {
@@ -1834,8 +1894,10 @@ function renderModel() {
     if (typeof av === 'string') return modelDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
     return modelDir === 'desc' ? bv - av : av - bv;
   });
-  document.getElementById('modelTbody').innerHTML = filtered.map((p, i) => `
-    <tr>
+  document.getElementById('modelTbody').innerHTML = filtered.map((p, i) => {
+    const inL = LINEUP.find(x => x.name === p.name);
+    return `
+    <tr class="${inL ? 'in-lineup' : ''}">
       <td class="num" style="color:var(--ink-3);font-weight:700">${i + 1}</td>
       <td><div class="player-name">${p.name}</div><div class="player-archetype">${p.arch}</div></td>
       <td class="num">${fmtFinal(p.final_sg)}</td>
@@ -1849,7 +1911,10 @@ function renderModel() {
       <td class="num hide-mobile">${fmtAdj(p.adj_other)}</td>
       <td class="num">${fmtAdj(p.adj_total)}</td>
       <td class="num">${fmtSal(p.salary)}</td>
-    </tr>`).join('');
+      <td><button class="add-btn ${inL ? 'added' : ''}" data-name="${p.name}">${inL ? '✓' : '+'}</button></td>
+    </tr>`;
+  }).join('');
+  bindAddButtons();
 }
 
 document.querySelectorAll('#modelTable th[data-modelsort]').forEach(th => {
@@ -1923,17 +1988,32 @@ function bindAddButtons(){
   document.querySelectorAll('.add-btn').forEach(btn => {
     btn.onclick = e => {
       e.stopPropagation();
-      const name = btn.dataset.name;
-      const idx = LINEUP.findIndex(x => x.name === name);
-      if (idx >= 0) LINEUP.splice(idx, 1);
-      else if (LINEUP.length < SLOTS) {
-        const p = PLAYERS.find(x => x.name === name);
-        LINEUP.push(p);
-      }
-      renderPlaylist();
-      renderBuilder();
+      togglePlayerInLineup(btn.dataset.name);
     };
   });
+}
+
+function togglePlayerInLineup(name){
+  const idx = LINEUP.findIndex(x => x.name === name);
+  if (idx >= 0) LINEUP.splice(idx, 1);
+  else if (LINEUP.length < SLOTS) {
+    const p = PLAYERS.find(x => x.name === name);
+    if (p) LINEUP.push(p);
+  } else {
+    return; // full
+  }
+  refreshAllTabs();
+}
+
+// Re-render every tab so add-buttons / row highlights stay in sync,
+// then update the floating builder.
+function refreshAllTabs(){
+  renderPlaylist();
+  renderBuilder();
+  if (typeof renderForm === 'function') renderForm();
+  if (typeof renderMajorHist === 'function') renderMajorHist();
+  if (typeof renderModel === 'function') renderModel();
+  if (typeof renderValue === 'function') renderValue();
 }
 
 function renderLineup(){
@@ -1963,7 +2043,7 @@ function renderLineup(){
   document.getElementById('lu-salary').textContent = fmtSal(sal);
   const capEl = document.getElementById('lu-cap');
   capEl.textContent = fmtSal(cap);
-  capEl.className = 'value ' + (cap < 0 ? 'bad' : (LINEUP.length === SLOTS && sal >= 49500 ? 'ok' : ''));
+  capEl.className = 'value ' + (cap < 0 ? 'bad' : (LINEUP.length === SLOTS && sal >= 49500 && sal <= 49900 ? 'ok' : ''));
   document.getElementById('lu-proj').textContent = proj.toFixed(1);
   document.getElementById('lu-ceil').textContent = ceil.toFixed(1);
   const studsEl = document.getElementById('lu-studs');
@@ -1974,7 +2054,8 @@ function renderLineup(){
   // Warnings
   const warnings = [];
   if (sal > CAP) warnings.push('⚠ Over cap by '+fmtSal(sal-CAP));
-  if (LINEUP.length === SLOTS && sal < 49500) warnings.push('⚠ Under min spend ($49,500)');
+  if (LINEUP.length === SLOTS && sal < 49500) warnings.push('⚠ Below target ($49,500 min)');
+  if (LINEUP.length === SLOTS && sal > 49900 && sal <= CAP) warnings.push('⚠ Above target ($49,900 max)');
   if (LINEUP.length === SLOTS && studs < 1) warnings.push('⚠ No studs ($9k+)');
   const fades = LINEUP.filter(p => p.tag === 'FADE');
   if (fades.length > 0) warnings.push('⚠ Has FADE-tagged: '+fades.map(p => p.name).join(', '));
@@ -1982,14 +2063,21 @@ function renderLineup(){
   if (apt.length >= 2) warnings.push('⚠ '+apt.length+' weak-fit players');
   
   document.getElementById('lu-warnings').innerHTML = warnings.length ? warnings.join('<br>') : (LINEUP.length === SLOTS ? '<span style="color:var(--gain)">✓ Lineup looks clean</span>' : '');
+
+  // Update floating-builder mini chips (visible when collapsed)
+  const miniS = document.getElementById('lu-salary-mini');
+  const miniC = document.getElementById('lu-count-mini');
+  const miniP = document.getElementById('lu-proj-mini');
+  if (miniS) miniS.textContent = sal.toLocaleString();
+  if (miniC) miniC.textContent = LINEUP.length;
+  if (miniP) miniP.textContent = proj.toFixed(0);
 }
 
 window.removeFromLineup = function(name){
   const idx = LINEUP.findIndex(x => x.name === name);
   if (idx >= 0) {
     LINEUP.splice(idx, 1);
-    renderPlaylist();
-    renderBuilder();
+    refreshAllTabs();
   }
 };
 
@@ -2019,15 +2107,16 @@ document.getElementById('builderSearch').addEventListener('input', e => {
 
 document.getElementById('btn-clear').onclick = () => {
   LINEUP = [];
-  renderPlaylist();
-  renderBuilder();
+  refreshAllTabs();
 };
+
 // Knapsack DP: max sum(cash_proj) over exactly SLOTS players,
-// total salary in [SAL_MIN, CAP]. All DK salaries are multiples of $100.
-function optimizeLineup(SAL_MIN){
+// total salary in [SAL_MIN, SAL_MAX]. DK salaries are $100 multiples.
+function optimizeLineup(SAL_MIN, SAL_MAX){
   const STEP = 100;
-  const buckets = (CAP / STEP) + 1;
-  const pool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0 && p.salary <= CAP);
+  if (SAL_MAX === undefined) SAL_MAX = CAP;
+  const buckets = Math.floor(SAL_MAX / STEP) + 1;
+  const pool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0 && p.salary <= SAL_MAX);
   if (pool.length < SLOTS) return null;
   const NEG = -Infinity;
   const dp = [], parent = [];
@@ -2054,8 +2143,9 @@ function optimizeLineup(SAL_MIN){
     }
   }
   const minBucket = Math.ceil(SAL_MIN / STEP);
+  const maxBucket = Math.floor(SAL_MAX / STEP);
   let bestS = -1, bestProj = NEG;
-  for (let s = minBucket; s < buckets; s++) {
+  for (let s = minBucket; s <= maxBucket; s++) {
     if (dp[SLOTS][s] > bestProj) { bestProj = dp[SLOTS][s]; bestS = s; }
   }
   if (bestS < 0) return null;
@@ -2070,12 +2160,22 @@ function optimizeLineup(SAL_MIN){
 }
 
 document.getElementById('btn-optimize').onclick = () => {
-  const picks = optimizeLineup(49000);
-  if (!picks) { alert('No feasible 6-player lineup found ≥ $49,000.'); return; }
+  const picks = optimizeLineup(49500, 49900);
+  if (!picks) { alert('No feasible 6-player lineup found in $49,500–$49,900.'); return; }
   LINEUP = picks;
-  renderPlaylist();
-  renderBuilder();
+  refreshAllTabs();
 };
+
+// Floating-builder toggle
+(function(){
+  const box = document.getElementById('floatBuilder');
+  const tog = document.getElementById('fb-toggle');
+  if (!box || !tog) return;
+  tog.addEventListener('click', () => {
+    const collapsed = box.classList.toggle('collapsed');
+    tog.setAttribute('aria-expanded', String(!collapsed));
+  });
+})();
 
 document.getElementById('btn-save').onclick = () => {
   if (LINEUP.length !== SLOTS) {
@@ -2107,6 +2207,7 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
 
 // Init
 renderPlaylist();
+renderLineup();
 </script>
 </body>
 </html>
