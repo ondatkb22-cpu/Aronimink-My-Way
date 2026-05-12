@@ -506,7 +506,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Tuesday, May 12, 2026 &middot; 13:19 UTC<br>
+      Tuesday, May 12, 2026 &middot; 13:33 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1057,7 +1057,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     <div class="lineup-actions">
       <button class="lineup-btn secondary" id="btn-clear" type="button">Clear</button>
       <button class="lineup-btn" id="btn-optimize" title="Max projection, 6 players, $49,500&ndash;$49,900" type="button">Optimize</button>
-      <button class="lineup-btn" id="btn-optimize-hot" title="Top projection from hot-form pool only (multi-winners, recent top-10s, HOT/TRENDING form), $49,500&ndash;$49,900" type="button">Hot Form</button>
+      <button class="lineup-btn" id="btn-optimize-hot" title="Top adjusted projection (cash proj + 0.06 × major pedigree + 8 × DG form) from hot-form pool, $49,500&ndash;$49,900" type="button">Hot Form</button>
       <button class="lineup-btn" id="btn-save" type="button">Save</button>
     </div>
     <div id="lu-warnings" style="margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--warn);line-height:1.5"></div>
@@ -1065,7 +1065,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 13:19 UTC &middot; Hot-Form optimizer live &middot; Knapp OUT, Hoge in (TBD) &middot; Built on the bones of the Truist post-mortem
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 13:33 UTC &middot; Hot-Form composite engine (proj + pedigree + form) &middot; Knapp OUT, Hoge in (TBD) &middot; Built on the bones of the Truist post-mortem
 </footer>
 
 <script>
@@ -2118,51 +2118,84 @@ document.getElementById('btn-clear').onclick = () => {
   refreshAllTabs();
 };
 
-// Knapsack DP: max sum(cash_proj) over exactly SLOTS players,
+// Composite score used by the Hot-Form engine: raw cash projection
+// nudged up by major pedigree (career + recent finishes) and current
+// form (DG sg_l20 + vs_baseline). Calibrated so:
+//   pedigree 350 (Rory)        -> +21 proj points
+//   pedigree 263 (Scheffler)   -> +15.8
+//   form_score +2.10 (A.Fitz)  -> +16.8
+//   form_score -0.50 (FADE)    -> -4.0
+// Missing data contributes 0.
+function effectiveProj(p){
+  let bonus = 0;
+  if (p.has_major_data && p.pedigree_score) bonus += p.pedigree_score * 0.06;
+  if (p.form_score !== null && p.form_score !== undefined) bonus += p.form_score * 8;
+  return p.cash_proj + bonus;
+}
+
+// Knapsack DP: max sum(scoreFn) over exactly SLOTS players,
 // total salary in [SAL_MIN, SAL_MAX]. DK salaries are $100 multiples.
-function knapsackPicks(pool, SAL_MIN, SAL_MAX, slots){
+// scoreFn defaults to raw cash_proj.
+// Uses a 3D dp[i][k][s] table so traceback can correctly determine
+// per-item inclusion (dp[i][k][s] > dp[i-1][k][s] iff item i was taken).
+function knapsackPicks(pool, SAL_MIN, SAL_MAX, slots, scoreFn){
   const STEP = 100;
   if (SAL_MAX === undefined) SAL_MAX = CAP;
   if (slots === undefined) slots = SLOTS;
+  const scoreOf = scoreFn || (p => p.cash_proj);
   const buckets = Math.floor(SAL_MAX / STEP) + 1;
-  if (pool.length < slots) return null;
+  const N = pool.length;
+  if (N < slots) return null;
   const NEG = -Infinity;
-  const dp = [], parent = [];
-  for (let k = 0; k <= slots; k++) {
-    dp.push(new Array(buckets).fill(NEG));
-    parent.push(new Array(buckets).fill(null));
+  // dp[i][k] is a Float32Array of length `buckets`. dp[i][k][s] = best score
+  // using the first i items with exactly k picks summing to bucket s.
+  const dp = new Array(N + 1);
+  for (let i = 0; i <= N; i++) {
+    dp[i] = new Array(slots + 1);
+    for (let k = 0; k <= slots; k++) {
+      dp[i][k] = new Float32Array(buckets);
+      dp[i][k].fill(NEG);
+    }
   }
-  dp[0][0] = 0;
-  for (let i = 0; i < pool.length; i++) {
-    const p = pool[i];
-    const sb = Math.round(p.salary / STEP);
-    const proj = p.cash_proj;
-    for (let k = slots; k >= 1; k--) {
-      const dpk = dp[k], dpkm1 = dp[k-1], park = parent[k];
-      for (let s = buckets - 1; s >= sb; s--) {
-        const prev = dpkm1[s - sb];
-        if (prev === NEG) continue;
-        const cand = prev + proj;
-        if (cand > dpk[s]) {
-          dpk[s] = cand;
-          park[s] = {idx: i, prevS: s - sb};
+  dp[0][0][0] = 0;
+  for (let i = 1; i <= N; i++) {
+    const sb = Math.round(pool[i-1].salary / STEP);
+    const v = scoreOf(pool[i-1]);
+    for (let k = 0; k <= slots; k++) {
+      const dpik = dp[i][k];
+      const dpprev = dp[i-1][k];
+      const dpprevkm1 = (k >= 1) ? dp[i-1][k-1] : null;
+      for (let s = 0; s < buckets; s++) {
+        // Option A: skip item i
+        let best = dpprev[s];
+        // Option B: take item i
+        if (dpprevkm1 && s >= sb) {
+          const prev = dpprevkm1[s - sb];
+          if (prev !== NEG) {
+            const cand = prev + v;
+            if (cand > best) best = cand;
+          }
         }
+        dpik[s] = best;
       }
     }
   }
   const minBucket = Math.ceil(SAL_MIN / STEP);
   const maxBucket = Math.floor(SAL_MAX / STEP);
-  let bestS = -1, bestProj = NEG;
+  let bestS = -1, bestVal = NEG;
   for (let s = minBucket; s <= maxBucket; s++) {
-    if (dp[slots][s] > bestProj) { bestProj = dp[slots][s]; bestS = s; }
+    if (dp[N][slots][s] > bestVal) { bestVal = dp[N][slots][s]; bestS = s; }
   }
   if (bestS < 0) return null;
+  // Traceback: item i was used iff dp[i][k][s] strictly exceeds dp[i-1][k][s].
   const picks = [];
   let k = slots, s = bestS;
-  while (k > 0 && parent[k][s]) {
-    picks.push(pool[parent[k][s].idx]);
-    s = parent[k][s].prevS;
-    k--;
+  for (let i = N; i >= 1 && k > 0; i--) {
+    if (dp[i][k][s] > dp[i-1][k][s] + 1e-5) {
+      picks.push(pool[i-1]);
+      s -= Math.round(pool[i-1].salary / STEP);
+      k--;
+    }
   }
   return picks.reverse();
 }
@@ -2197,7 +2230,7 @@ function optimizeHotForm(SAL_MIN, SAL_MAX){
     const trending     = p.tag === 'LOCKED' || p.tag === 'TRENDING';
     return recentMajorTop10 || frequentT10 || hotDg || trending;
   });
-  return knapsackPicks(pool, min, cap, SLOTS);
+  return knapsackPicks(pool, min, cap, SLOTS, effectiveProj);
 }
 
 document.getElementById('btn-optimize').onclick = () => {
