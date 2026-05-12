@@ -429,6 +429,51 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
 .value-card .stat .val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .value-card .why{font-size:13px;color:var(--ink-2);font-style:italic;line-height:1.45}
 
+/* 3D Player Pool */
+.pool3d-shell{
+  position:relative;background:var(--paper-2);
+  border:1px solid var(--rule);border-radius:2px;
+  height:min(70vh,560px);overflow:hidden;
+  box-shadow:var(--shadow);
+}
+#pool3dCanvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+#pool3dCanvas:active{cursor:grabbing}
+.pool3d-axes{
+  position:absolute;left:10px;bottom:10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:var(--ink-3);letter-spacing:0.08em;text-transform:uppercase;
+  background:rgba(246,241,231,0.85);padding:8px 10px;border-radius:2px;
+  pointer-events:none;line-height:1.6;
+}
+.pool3d-axes b{color:var(--ink);font-weight:700}
+.pool3d-axes .ax-x b{color:#9d2933}
+.pool3d-axes .ax-y b{color:#4a7a3e}
+.pool3d-axes .ax-z b{color:#1a6695}
+.pool3d-legend{
+  position:absolute;right:10px;top:10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  background:rgba(246,241,231,0.85);padding:8px 10px;border-radius:2px;
+  pointer-events:none;line-height:1.7;
+}
+.pool3d-legend .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+#pool3dTip{
+  position:absolute;display:none;
+  background:var(--ink);color:var(--paper);
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:6px 9px;border-radius:2px;
+  pointer-events:none;z-index:10;
+  box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  white-space:nowrap;line-height:1.4;
+}
+#pool3dTip .nm{font-family:'Fraunces',serif;font-size:12px;font-weight:700;color:var(--paper)}
+#pool3dTip .mt{color:var(--paper-3);font-size:9px;margin-top:2px;letter-spacing:0.04em}
+.pool3d-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.pool3d-loading{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+
 /* Floating Lineup Builder */
 .float-builder{
   position:fixed;right:18px;bottom:18px;width:320px;
@@ -570,7 +615,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Tuesday, May 12, 2026 &middot; 15:18 UTC<br>
+      Tuesday, May 12, 2026 &middot; 17:47 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -584,6 +629,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
   <button class="tab-btn" data-tab="form">Form + DG</button>
   <button class="tab-btn" data-tab="major">Major History</button>
   <button class="tab-btn" data-tab="model">Model</button>
+  <button class="tab-btn" data-tab="pool3d">3D Pool</button>
   <button class="tab-btn" data-tab="builder">Builder</button>
   <button class="tab-btn" data-tab="angles">5 Angles</button>
   <button class="tab-btn" data-tab="archetypes">Archetypes</button>
@@ -906,6 +952,43 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
   </table>
 </section>
 
+<!-- =========== 3D POOL =========== -->
+<section id="tab-pool3d" class="tab-section">
+  <div class="section-head">
+    <h2>3D Player Pool</h2>
+    <span class="sub">Rotate &middot; click a sphere to add to the lineup</span>
+  </div>
+  <div class="value-callout">
+    Every player plotted in three dimensions. <strong>X</strong> = salary, <strong>Y</strong> = projection, <strong>Z</strong> = DG form score (vs-baseline blend). Sphere color = composite tag. Drag to rotate, scroll/pinch to zoom, click any sphere to toggle it into your floating lineup.
+  </div>
+  <div class="pool3d-toolbar">
+    <button class="filter-chip active" data-poolfilter="all">All</button>
+    <button class="filter-chip" data-poolfilter="value">$&lt;7k</button>
+    <button class="filter-chip" data-poolfilter="mid">$7&ndash;9k</button>
+    <button class="filter-chip" data-poolfilter="stud">$9k+</button>
+    <button class="filter-chip" data-poolfilter="hot">🔥 HOT / TRENDING</button>
+    <button class="filter-chip" data-poolfilter="locked">🔒 LOCKED only</button>
+  </div>
+  <div class="pool3d-shell" id="pool3dShell">
+    <canvas id="pool3dCanvas"></canvas>
+    <div class="pool3d-loading" id="pool3dLoading">Loading 3D engine&hellip;</div>
+    <div class="pool3d-axes">
+      <div class="ax-x"><b>X →</b> salary $5k–$14k</div>
+      <div class="ax-y"><b>Y ↑</b> projection 0–125</div>
+      <div class="ax-z"><b>Z ↗</b> form −1 to +2</div>
+    </div>
+    <div class="pool3d-legend">
+      <div><span class="sw" style="background:#1a1814"></span>LOCKED</div>
+      <div><span class="sw" style="background:#4a7a3e"></span>TRENDING</div>
+      <div><span class="sw" style="background:#d4a93a"></span>HOT form</div>
+      <div><span class="sw" style="background:#8c2727"></span>FADE</div>
+      <div><span class="sw" style="background:#c9bca1"></span>NEUTRAL</div>
+      <div><span class="sw" style="background:#5a5246"></span>OUT</div>
+    </div>
+    <div id="pool3dTip"></div>
+  </div>
+</section>
+
 <!-- =========== BUILDER =========== -->
 <section id="tab-builder" class="tab-section">
   <div class="section-head">
@@ -1149,7 +1232,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 15:18 UTC &middot; Mobile masthead compacted + scroll-shrink &middot; Knapp OUT, Hoge in (TBD)
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 17:47 UTC &middot; 3D Pool tab added &middot; Knapp OUT, Hoge in (TBD)
 </footer>
 
 <script>
@@ -1615,6 +1698,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'form') renderForm();
     if (btn.dataset.tab === 'major') renderMajorHist();
     if (btn.dataset.tab === 'model') renderModel();
+    if (btn.dataset.tab === 'pool3d') initPool3D();
   });
 });
 
@@ -2389,6 +2473,205 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
     renderBuilder();
   };
 });
+
+// =============== 3D POOL ===============
+let pool3DState = null;        // holds {THREE, scene, camera, renderer, ...}
+let pool3DReadyPromise = null; // lazy-loaded Three.js modules
+let pool3DFilter = 'all';
+
+function loadThree() {
+  if (pool3DReadyPromise) return pool3DReadyPromise;
+  pool3DReadyPromise = Promise.all([
+    import('https://unpkg.com/three@0.160.0/build/three.module.js'),
+    import('https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js')
+  ]).then(([THREE, OC]) => ({ THREE, OrbitControls: OC.OrbitControls }));
+  return pool3DReadyPromise;
+}
+
+function pool3DColor(p) {
+  if (p.tag === 'OUT')      return 0x5a5246;
+  if (p.tag === 'TBD')      return 0xc9bca1;
+  if (p.tag === 'LOCKED')   return 0x1a1814;
+  if (p.form_tag === 'HOT') return 0xd4a93a;
+  if (p.tag === 'TRENDING') return 0x4a7a3e;
+  if (p.tag === 'FADE')     return 0x8c2727;
+  return 0xc9bca1;
+}
+
+function pool3DPass(p) {
+  if (!(p.cash_proj > 0 && p.salary > 0)) return false;
+  if (pool3DFilter === 'value' && p.salary >= 7000) return false;
+  if (pool3DFilter === 'mid'   && (p.salary < 7000 || p.salary >= 9000)) return false;
+  if (pool3DFilter === 'stud'  && p.salary < 9000) return false;
+  if (pool3DFilter === 'hot'   && p.form_tag !== 'HOT' && p.form_tag !== 'TRENDING' && p.tag !== 'TRENDING' && p.tag !== 'LOCKED') return false;
+  if (pool3DFilter === 'locked' && p.tag !== 'LOCKED') return false;
+  return true;
+}
+
+async function initPool3D() {
+  // First time: load Three.js + build scene. Subsequent calls just rebuild spheres.
+  if (!pool3DState) {
+    const loading = document.getElementById('pool3dLoading');
+    try {
+      const { THREE, OrbitControls } = await loadThree();
+      buildPool3DScene(THREE, OrbitControls);
+      loading.style.display = 'none';
+    } catch (e) {
+      loading.textContent = '3D engine failed to load. (' + e.message + ')';
+      return;
+    }
+  }
+  rebuildPool3DSpheres();
+}
+
+function buildPool3DScene(THREE, OrbitControls) {
+  const canvas = document.getElementById('pool3dCanvas');
+  const tipEl = document.getElementById('pool3dTip');
+  const shell = document.getElementById('pool3dShell');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xede5d4);  // paper-2
+
+  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 200);
+  camera.position.set(7, 6, 9);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(w, h, false);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 0.7);
+  key.position.set(6, 10, 6);
+  scene.add(key);
+
+  // Axes: X red, Y green, Z blue; length 5 each, origin at (0,0,0)
+  const axisLen = 5;
+  const axes = new THREE.Group();
+  const xMat = new THREE.LineBasicMaterial({ color: 0x9d2933 });
+  const yMat = new THREE.LineBasicMaterial({ color: 0x4a7a3e });
+  const zMat = new THREE.LineBasicMaterial({ color: 0x1a6695 });
+  const line = (mat, x, y, z) => {
+    const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(x,y,z)]);
+    return new THREE.Line(g, mat);
+  };
+  axes.add(line(xMat, axisLen, 0, 0));
+  axes.add(line(yMat, 0, axisLen, 0));
+  axes.add(line(zMat, 0, 0, axisLen));
+  scene.add(axes);
+
+  // Grid plane on XZ floor
+  const grid = new THREE.GridHelper(axisLen * 2, 10, 0xc9bca1, 0xe3d9c2);
+  grid.position.set(axisLen/2, 0, axisLen/2);
+  scene.add(grid);
+
+  // Controls
+  const controls = new OrbitControls(camera, canvas);
+  controls.target.set(axisLen/2, axisLen/2, axisLen/2);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.update();
+
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const spheres = []; // {mesh, player}
+
+  function onPointerMove(e) {
+    const r = canvas.getBoundingClientRect();
+    mouse.x =  ((e.clientX - r.left) / r.width)  * 2 - 1;
+    mouse.y = -((e.clientY - r.top)  / r.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const meshes = spheres.map(s => s.mesh);
+    const hits = raycaster.intersectObjects(meshes, false);
+    if (hits.length) {
+      const p = hits[0].object.userData.player;
+      tipEl.style.display = 'block';
+      tipEl.style.left = Math.min(r.width - 220, (e.clientX - r.left) + 14) + 'px';
+      tipEl.style.top  = ((e.clientY - r.top) + 14) + 'px';
+      const inL = LINEUP.find(x => x.name === p.name);
+      tipEl.innerHTML = '<div class="nm">' + p.name + (inL ? ' ✓' : '') + '</div>'
+        + '<div class="mt">' + fmtSal(p.salary) + ' &middot; proj ' + p.cash_proj.toFixed(1)
+        + ' &middot; form ' + (p.form_score !== null ? (p.form_score>=0?'+':'') + p.form_score.toFixed(2) : '—')
+        + ' &middot; ' + p.tag + '</div>'
+        + '<div class="mt">' + (inL ? 'click to remove' : 'click to add') + '</div>';
+    } else {
+      tipEl.style.display = 'none';
+    }
+  }
+  function onClick(e) {
+    const r = canvas.getBoundingClientRect();
+    mouse.x =  ((e.clientX - r.left) / r.width)  * 2 - 1;
+    mouse.y = -((e.clientY - r.top)  / r.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const meshes = spheres.map(s => s.mesh);
+    const hits = raycaster.intersectObjects(meshes, false);
+    if (hits.length) {
+      togglePlayerInLineup(hits[0].object.userData.player.name);
+      // refresh selected ring (LINEUP changed)
+      spheres.forEach(s => {
+        const inL = LINEUP.find(x => x.name === s.player.name);
+        s.mesh.scale.setScalar(inL ? 1.7 : 1.0);
+      });
+    }
+  }
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('click', onClick);
+
+  function onResize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(onResize).observe(shell);
+
+  // Filter chip wiring
+  document.querySelectorAll('[data-poolfilter]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-poolfilter]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      pool3DFilter = chip.dataset.poolfilter;
+      rebuildPool3DSpheres();
+    });
+  });
+
+  function animate() {
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  pool3DState = { THREE, scene, camera, renderer, controls, spheres, axisLen };
+}
+
+function rebuildPool3DSpheres() {
+  if (!pool3DState) return;
+  const { THREE, scene, spheres, axisLen } = pool3DState;
+  // Tear down existing
+  spheres.forEach(s => { scene.remove(s.mesh); s.mesh.geometry.dispose(); s.mesh.material.dispose(); });
+  spheres.length = 0;
+
+  const SAL_MIN = 5000, SAL_MAX = 14000;
+  const PROJ_MAX = 125;
+  const FORM_MIN = -1, FORM_MAX = 2;
+  const geo = new THREE.SphereGeometry(0.13, 16, 12);
+
+  PLAYERS.filter(pool3DPass).forEach(p => {
+    const x = ((p.salary - SAL_MIN) / (SAL_MAX - SAL_MIN)) * axisLen;
+    const y = (p.cash_proj / PROJ_MAX) * axisLen;
+    const fs = p.form_score !== null ? p.form_score : 0;
+    const z = ((fs - FORM_MIN) / (FORM_MAX - FORM_MIN)) * axisLen;
+    const mat = new THREE.MeshLambertMaterial({ color: pool3DColor(p) });
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.userData.player = p;
+    const inL = LINEUP.find(x => x.name === p.name);
+    if (inL) m.scale.setScalar(1.7);
+    scene.add(m);
+    spheres.push({ mesh: m, player: p });
+  });
+}
 
 // Init
 renderPlaylist();
