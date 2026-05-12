@@ -43,7 +43,16 @@ body{
   border-bottom:3px double var(--ink);
   padding:14px 24px 10px;position:sticky;top:0;z-index:50;
   background:var(--paper);backdrop-filter:blur(8px);
+  transition:padding 0.18s ease;
 }
+/* Compact mode kicks in when the page is scrolled */
+.masthead.scrolled{padding:6px 24px 4px;border-bottom-style:solid;border-bottom-width:1px}
+.masthead.scrolled .kicker{display:none}
+.masthead.scrolled .title{font-size:clamp(18px,3vw,26px);margin-top:0}
+.masthead.scrolled .subtitle{display:none}
+.masthead.scrolled .dateline{font-size:9px;padding-left:8px}
+.masthead.scrolled .dateline strong{font-size:10px;display:inline;margin-right:6px}
+.masthead.scrolled .dateline br{display:none}
 .masthead-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
 .brand-block{flex:1;min-width:240px}
 .kicker{
@@ -527,9 +536,20 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 
 @media(max-width:640px){
   main{padding:20px 16px 60px}
-  .masthead{padding:12px 16px 8px}
-  nav{padding:0 16px}
-  .title{font-size:32px}
+  .masthead{padding:8px 14px 6px}
+  .masthead.scrolled{padding:4px 14px 3px}
+  nav{padding:0 14px}
+  nav button{padding:10px 14px;font-size:10px}
+  .kicker{font-size:9px;letter-spacing:0.14em}
+  .title{font-size:22px;line-height:0.95;letter-spacing:-0.01em;margin-top:2px}
+  .subtitle{font-size:11px;line-height:1.3;margin-top:3px}
+  .dateline{
+    font-size:9px;text-align:left;
+    border-left:none;padding-left:0;
+    margin-top:6px;flex-basis:100%;
+  }
+  .dateline strong{display:inline;font-size:10px;margin-right:8px}
+  .dateline br{display:none}
   .hero-lede{font-size:16px}
   table.players{font-size:12px}
   table.players td{padding:8px 6px}
@@ -550,7 +570,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Tuesday, May 12, 2026 &middot; 15:03 UTC<br>
+      Tuesday, May 12, 2026 &middot; 15:18 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1129,7 +1149,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 15:03 UTC &middot; Major History blank-table bug fixed &middot; Full UI audit clean &middot; Knapp OUT, Hoge in (TBD)
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 15:18 UTC &middot; Mobile masthead compacted + scroll-shrink &middot; Knapp OUT, Hoge in (TBD)
 </footer>
 
 <script>
@@ -2323,6 +2343,22 @@ document.getElementById('btn-optimize-hot').onclick = () => {
     const collapsed = box.classList.toggle('collapsed');
     tog.setAttribute('aria-expanded', String(!collapsed));
   });
+})();
+
+// Masthead scroll-shrink: collapses kicker/subtitle and shrinks title once
+// the user scrolls past ~60px so the sticky header doesn't cover content.
+(function(){
+  const masthead = document.querySelector('.masthead');
+  if (!masthead) return;
+  let ticking = false;
+  const update = () => {
+    masthead.classList.toggle('scrolled', window.scrollY > 60);
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+  update();
 })();
 
 document.getElementById('btn-save').onclick = () => {
