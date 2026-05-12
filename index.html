@@ -506,7 +506,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Tuesday, May 12, 2026 &middot; 12:50 UTC<br>
+      Tuesday, May 12, 2026 &middot; 13:19 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1057,6 +1057,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     <div class="lineup-actions">
       <button class="lineup-btn secondary" id="btn-clear" type="button">Clear</button>
       <button class="lineup-btn" id="btn-optimize" title="Max projection, 6 players, $49,500&ndash;$49,900" type="button">Optimize</button>
+      <button class="lineup-btn" id="btn-optimize-hot" title="Top projection from hot-form pool only (multi-winners, recent top-10s, HOT/TRENDING form), $49,500&ndash;$49,900" type="button">Hot Form</button>
       <button class="lineup-btn" id="btn-save" type="button">Save</button>
     </div>
     <div id="lu-warnings" style="margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--warn);line-height:1.5"></div>
@@ -1064,7 +1065,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 12:50 UTC &middot; Knapp WD &middot; Hoge in (salary TBD) &middot; Built on the bones of the Truist post-mortem
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 13:19 UTC &middot; Hot-Form optimizer live &middot; Knapp OUT, Hoge in (TBD) &middot; Built on the bones of the Truist post-mortem
 </footer>
 
 <script>
@@ -2119,15 +2120,15 @@ document.getElementById('btn-clear').onclick = () => {
 
 // Knapsack DP: max sum(cash_proj) over exactly SLOTS players,
 // total salary in [SAL_MIN, SAL_MAX]. DK salaries are $100 multiples.
-function optimizeLineup(SAL_MIN, SAL_MAX){
+function knapsackPicks(pool, SAL_MIN, SAL_MAX, slots){
   const STEP = 100;
   if (SAL_MAX === undefined) SAL_MAX = CAP;
+  if (slots === undefined) slots = SLOTS;
   const buckets = Math.floor(SAL_MAX / STEP) + 1;
-  const pool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0 && p.salary <= SAL_MAX);
-  if (pool.length < SLOTS) return null;
+  if (pool.length < slots) return null;
   const NEG = -Infinity;
   const dp = [], parent = [];
-  for (let k = 0; k <= SLOTS; k++) {
+  for (let k = 0; k <= slots; k++) {
     dp.push(new Array(buckets).fill(NEG));
     parent.push(new Array(buckets).fill(null));
   }
@@ -2136,7 +2137,7 @@ function optimizeLineup(SAL_MIN, SAL_MAX){
     const p = pool[i];
     const sb = Math.round(p.salary / STEP);
     const proj = p.cash_proj;
-    for (let k = SLOTS; k >= 1; k--) {
+    for (let k = slots; k >= 1; k--) {
       const dpk = dp[k], dpkm1 = dp[k-1], park = parent[k];
       for (let s = buckets - 1; s >= sb; s--) {
         const prev = dpkm1[s - sb];
@@ -2153,11 +2154,11 @@ function optimizeLineup(SAL_MIN, SAL_MAX){
   const maxBucket = Math.floor(SAL_MAX / STEP);
   let bestS = -1, bestProj = NEG;
   for (let s = minBucket; s <= maxBucket; s++) {
-    if (dp[SLOTS][s] > bestProj) { bestProj = dp[SLOTS][s]; bestS = s; }
+    if (dp[slots][s] > bestProj) { bestProj = dp[slots][s]; bestS = s; }
   }
   if (bestS < 0) return null;
   const picks = [];
-  let k = SLOTS, s = bestS;
+  let k = slots, s = bestS;
   while (k > 0 && parent[k][s]) {
     picks.push(pool[parent[k][s].idx]);
     s = parent[k][s].prevS;
@@ -2166,9 +2167,49 @@ function optimizeLineup(SAL_MIN, SAL_MAX){
   return picks.reverse();
 }
 
+function optimizeLineup(SAL_MIN, SAL_MAX){
+  const cap = SAL_MAX || CAP;
+  const pool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0 && p.salary <= cap);
+  return knapsackPicks(pool, SAL_MIN, cap, SLOTS);
+}
+
+// Hot-Form engine: restrict pool to players showing momentum
+// (any of: 2025/26 major top-10, frequent recent top-10s,
+// HOT/TRENDING DG form, or LOCKED/TRENDING composite tag),
+// then run knapsack for the top-projected lineup in $49.5k-$49.9k.
+function optimizeHotForm(SAL_MIN, SAL_MAX){
+  const isTop10 = s => {
+    if (!s || s === '?' || s === '—' || s === 'MC') return false;
+    if (s === 'WIN') return true;
+    const n = parseInt(String(s).replace(/^T/, ''), 10);
+    return !isNaN(n) && n <= 10;
+  };
+  const cap = SAL_MAX || 49900;
+  const min = SAL_MIN || 49500;
+  const pool = PLAYERS.filter(p => {
+    if (!(p.cash_proj > 0 && p.salary > 0 && p.salary <= cap)) return false;
+    const recentMajorTop10 = p.has_major_data && (
+      isTop10(p.masters_2026) || isTop10(p.pga_2025) ||
+      isTop10(p.us_open_2025) || isTop10(p.open_2025) || isTop10(p.masters_2025)
+    );
+    const frequentT10  = (p.t10 || 0) >= 5;
+    const hotDg        = p.form_tag === 'HOT' || p.form_tag === 'TRENDING';
+    const trending     = p.tag === 'LOCKED' || p.tag === 'TRENDING';
+    return recentMajorTop10 || frequentT10 || hotDg || trending;
+  });
+  return knapsackPicks(pool, min, cap, SLOTS);
+}
+
 document.getElementById('btn-optimize').onclick = () => {
   const picks = optimizeLineup(49500, 49900);
-  if (!picks) { alert('No feasible 6-player lineup found in $49,500–$49,900.'); return; }
+  if (!picks) { alert('No feasible 6-player lineup in $49,500–$49,900.'); return; }
+  LINEUP = picks;
+  refreshAllTabs();
+};
+
+document.getElementById('btn-optimize-hot').onclick = () => {
+  const picks = optimizeHotForm(49500, 49900);
+  if (!picks) { alert('Hot-form pool too thin for a $49,500–$49,900 lineup.'); return; }
   LINEUP = picks;
   refreshAllTabs();
 };
@@ -2196,12 +2237,13 @@ document.getElementById('btn-save').onclick = () => {
 };
 
 // =============== PRESETS ===============
+// Presets — all sized to land in $49,500–$49,900 (verified)
 const PRESETS = {
-  stars: ['Cameron Young','Tommy Fleetwood','Hideki Matsuyama','Kurt Kitayama','Harry Hall','Alex Fitzpatrick'],
-  balanced: ['Cameron Young','Matt Fitzpatrick','Si Woo Kim','Sepp Straka','Ryan Gerard','Nicolai Hojgaard'],
-  ceiling: ['Rory McIlroy','Cameron Young','Jake Knapp','Harry Hall','Alex Fitzpatrick','Daniel Hillier'],
-  hedge: ['Tommy Fleetwood','Tyrrell Hatton','Maverick McNealy','Chris Gotterup','Jacob Bridgeman','Ryan Gerard'],
-  course: ['Cameron Young','Hideki Matsuyama','Ludvig Aberg','Sepp Straka','Keegan Bradley','Adam Scott'],
+  stars:    ['Scottie Scheffler','Cameron Young','Jacob Bridgeman','Nicolai Hojgaard','Harry Hall','Daniel Hillier'],          // $49,800
+  balanced: ['Cameron Young','Matt Fitzpatrick','Viktor Hovland','Jacob Bridgeman','Nicolai Hojgaard','Alex Fitzpatrick'],     // $49,800
+  ceiling:  ['Rory McIlroy','Cameron Young','Ludvig Aberg','Harry Hall','Alex Fitzpatrick','Daniel Hillier'],                  // $49,900  (Knapp replaced by Aberg)
+  hedge:    ['Tommy Fleetwood','Tyrrell Hatton','Si Woo Kim','Chris Gotterup','Jacob Bridgeman','Ryan Gerard'],                // $49,500
+  course:   ['Cameron Young','Hideki Matsuyama','Ludvig Aberg','Sepp Straka','Kristoffer Reitan','Nicolai Hojgaard'],          // $49,900
 };
 document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.onclick = () => {
