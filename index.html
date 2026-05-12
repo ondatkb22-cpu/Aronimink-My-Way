@@ -615,7 +615,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Tuesday, May 12, 2026 &middot; 20:39 UTC<br>
+      Tuesday, May 12, 2026 &middot; 21:08 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -623,13 +623,13 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 
 <nav>
   <button class="tab-btn active" data-tab="course">Course</button>
+  <button class="tab-btn" data-tab="pool3d">3D Pool</button>
   <button class="tab-btn" data-tab="thesis">The Thesis</button>
   <button class="tab-btn" data-tab="playlist">Play-List<span class="count">156</span></button>
   <button class="tab-btn" data-tab="value">Value Hunt</button>
   <button class="tab-btn" data-tab="form">Form + DG</button>
   <button class="tab-btn" data-tab="major">Major History</button>
   <button class="tab-btn" data-tab="model">Model</button>
-  <button class="tab-btn" data-tab="pool3d">3D Pool</button>
   <button class="tab-btn" data-tab="builder">Builder</button>
   <button class="tab-btn" data-tab="angles">5 Angles</button>
   <button class="tab-btn" data-tab="archetypes">Archetypes</button>
@@ -956,10 +956,11 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 <section id="tab-pool3d" class="tab-section">
   <div class="section-head">
     <h2>3D Player Pool</h2>
-    <span class="sub">Rotate &middot; click a sphere to add to the lineup</span>
+    <span class="sub">One ball = one player &middot; drag to spin, click to draft</span>
   </div>
-  <div class="value-callout">
-    Every player plotted in three dimensions. <strong>X</strong> = salary, <strong>Y</strong> = projection, <strong>Z</strong> = DG form score (vs-baseline blend). Sphere color = composite tag. Drag to rotate, scroll/pinch to zoom, click any sphere to toggle it into your floating lineup.
+  <div class="value-callout" style="font-style:normal">
+    <strong>How to read it.</strong> Each ball is a player. Look <strong>right</strong> for higher salary, <strong>up</strong> for higher projection, <strong>back</strong> for hotter recent form. The labelled balls are the top 10 by projection. <em>Drag</em> to rotate, <em>scroll/pinch</em> to zoom, <em>click</em> any ball to toggle it in your lineup.
+    <br><strong>Sweet spot:</strong> high (good proj) and to the back (hot form) without being too far right (cheap).
   </div>
   <div class="pool3d-toolbar">
     <button class="filter-chip active" data-poolfilter="all">All</button>
@@ -968,14 +969,16 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     <button class="filter-chip" data-poolfilter="stud">$9k+</button>
     <button class="filter-chip" data-poolfilter="hot">🔥 HOT / TRENDING</button>
     <button class="filter-chip" data-poolfilter="locked">🔒 LOCKED only</button>
+    <button class="filter-chip" id="pool3dNamesToggle" aria-pressed="true">Names: ON</button>
+    <button class="filter-chip" id="pool3dResetView">↺ Reset view</button>
   </div>
   <div class="pool3d-shell" id="pool3dShell">
     <canvas id="pool3dCanvas"></canvas>
     <div class="pool3d-loading" id="pool3dLoading">Loading 3D engine&hellip;</div>
     <div class="pool3d-axes">
-      <div class="ax-x"><b>X →</b> salary $5k–$14k</div>
-      <div class="ax-y"><b>Y ↑</b> projection 0–125</div>
-      <div class="ax-z"><b>Z ↗</b> form −1 to +2</div>
+      <div class="ax-x"><b>→ X</b> salary &mdash; right is pricier</div>
+      <div class="ax-y"><b>↑ Y</b> projection &mdash; up is better</div>
+      <div class="ax-z"><b>↗ Z</b> form &mdash; back is hotter</div>
     </div>
     <div class="pool3d-legend">
       <div><span class="sw" style="background:#1a1814"></span>LOCKED</div>
@@ -983,7 +986,6 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
       <div><span class="sw" style="background:#d4a93a"></span>HOT form</div>
       <div><span class="sw" style="background:#8c2727"></span>FADE</div>
       <div><span class="sw" style="background:#c9bca1"></span>NEUTRAL</div>
-      <div><span class="sw" style="background:#5a5246"></span>OUT</div>
     </div>
     <div id="pool3dTip"></div>
   </div>
@@ -1232,7 +1234,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 20:39 UTC &middot; 3D Pool engine fixed (esm.sh) &middot; 156 active &middot; Hot-Form composite optimizer live
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 21:08 UTC &middot; 3D Pool moved to tab #2 with axis + top-name labels &middot; 156 active
 </footer>
 
 <script>
@@ -2535,7 +2537,8 @@ function buildPool3DScene(THREE, OrbitControls) {
   scene.background = new THREE.Color(0xede5d4);  // paper-2
 
   const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 200);
-  camera.position.set(7, 6, 9);
+  const INITIAL_CAM = new THREE.Vector3(8, 6.5, 9);
+  camera.position.copy(INITIAL_CAM);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -2562,6 +2565,56 @@ function buildPool3DScene(THREE, OrbitControls) {
   axes.add(line(zMat, 0, 0, axisLen));
   scene.add(axes);
 
+  // Helper: build a text sprite (canvas-textured plane that always faces camera)
+  function textSprite(text, opts) {
+    opts = opts || {};
+    const fontSize = opts.fontSize || 30;
+    const fillStyle = opts.fillStyle || '#1a1814';
+    const bg = opts.bg || 'rgba(246,241,231,0.9)';
+    const padX = opts.padX || 12;
+    const padY = opts.padY || 6;
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    const font = (opts.weight || '700') + ' ' + fontSize + 'px ' + (opts.family || "'JetBrains Mono', monospace");
+    ctx.font = font;
+    const tw = Math.ceil(ctx.measureText(text).width);
+    c.width  = (tw + padX * 2) * 2;   // 2x for DPR
+    c.height = (fontSize + padY * 2) * 2;
+    const ctx2 = c.getContext('2d');
+    ctx2.scale(2, 2);
+    ctx2.font = font;
+    ctx2.textBaseline = 'middle';
+    if (opts.bg) {
+      ctx2.fillStyle = bg;
+      ctx2.fillRect(0, 0, c.width/2, c.height/2);
+    }
+    ctx2.fillStyle = fillStyle;
+    ctx2.fillText(text, padX, c.height/4);
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    tex.minFilter = THREE.LinearFilter;
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    const sp = new THREE.Sprite(mat);
+    // World-space scale: width/height ratio kept; height = scale, width derives
+    const worldH = opts.worldHeight || 0.35;
+    sp.scale.set(worldH * (c.width / c.height), worldH, 1);
+    sp.renderOrder = 999;
+    return sp;
+  }
+
+  // Axis endpoint labels
+  const axisLabels = new THREE.Group();
+  const xl = textSprite('$14k →', { fillStyle:'#9d2933', bg:'rgba(246,241,231,0.92)', worldHeight:0.42 });
+  xl.position.set(axisLen + 0.6, 0, 0); axisLabels.add(xl);
+  const yl = textSprite('↑ 125 PROJ', { fillStyle:'#4a7a3e', bg:'rgba(246,241,231,0.92)', worldHeight:0.42 });
+  yl.position.set(0, axisLen + 0.5, 0); axisLabels.add(yl);
+  const zl = textSprite('FORM +2 ↗', { fillStyle:'#1a6695', bg:'rgba(246,241,231,0.92)', worldHeight:0.42 });
+  zl.position.set(0, 0, axisLen + 0.6); axisLabels.add(zl);
+  // Origin marker
+  const ol = textSprite('$5k · 0 · −1', { fillStyle:'#6b6354', bg:'rgba(246,241,231,0.92)', worldHeight:0.32 });
+  ol.position.set(-0.6, -0.35, -0.6); axisLabels.add(ol);
+  scene.add(axisLabels);
+
   // Grid plane on XZ floor
   const grid = new THREE.GridHelper(axisLen * 2, 10, 0xc9bca1, 0xe3d9c2);
   grid.position.set(axisLen/2, 0, axisLen/2);
@@ -2569,7 +2622,8 @@ function buildPool3DScene(THREE, OrbitControls) {
 
   // Controls
   const controls = new OrbitControls(camera, canvas);
-  controls.target.set(axisLen/2, axisLen/2, axisLen/2);
+  const INITIAL_TARGET = new THREE.Vector3(axisLen/2, axisLen/2, axisLen/2);
+  controls.target.copy(INITIAL_TARGET);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.update();
@@ -2636,6 +2690,26 @@ function buildPool3DScene(THREE, OrbitControls) {
     });
   });
 
+  // Names toggle
+  const namesBtn = document.getElementById('pool3dNamesToggle');
+  if (namesBtn) {
+    namesBtn.addEventListener('click', () => {
+      pool3DState.showNames = !pool3DState.showNames;
+      namesBtn.textContent = 'Names: ' + (pool3DState.showNames ? 'ON' : 'OFF');
+      namesBtn.setAttribute('aria-pressed', String(pool3DState.showNames));
+      rebuildPool3DSpheres();
+    });
+  }
+  // Reset view
+  const resetBtn = document.getElementById('pool3dResetView');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      camera.position.copy(INITIAL_CAM);
+      controls.target.copy(INITIAL_TARGET);
+      controls.update();
+    });
+  }
+
   function animate() {
     controls.update();
     renderer.render(scene, camera);
@@ -2643,35 +2717,62 @@ function buildPool3DScene(THREE, OrbitControls) {
   }
   animate();
 
-  pool3DState = { THREE, scene, camera, renderer, controls, spheres, axisLen };
+  pool3DState = { THREE, scene, camera, renderer, controls, spheres, axisLen, textSprite, showNames: true, nameSprites: [] };
 }
 
 function rebuildPool3DSpheres() {
   if (!pool3DState) return;
-  const { THREE, scene, spheres, axisLen } = pool3DState;
-  // Tear down existing
+  const { THREE, scene, spheres, axisLen, textSprite, nameSprites } = pool3DState;
+  // Tear down existing spheres
   spheres.forEach(s => { scene.remove(s.mesh); s.mesh.geometry.dispose(); s.mesh.material.dispose(); });
   spheres.length = 0;
+  // Tear down existing name labels
+  nameSprites.forEach(sp => { scene.remove(sp); if (sp.material.map) sp.material.map.dispose(); sp.material.dispose(); });
+  nameSprites.length = 0;
 
   const SAL_MIN = 5000, SAL_MAX = 14000;
   const PROJ_MAX = 125;
   const FORM_MIN = -1, FORM_MAX = 2;
-  const geo = new THREE.SphereGeometry(0.13, 16, 12);
 
-  PLAYERS.filter(pool3DPass).forEach(p => {
+  const pool = PLAYERS.filter(pool3DPass);
+
+  pool.forEach(p => {
     const x = ((p.salary - SAL_MIN) / (SAL_MAX - SAL_MIN)) * axisLen;
     const y = (p.cash_proj / PROJ_MAX) * axisLen;
     const fs = p.form_score !== null ? p.form_score : 0;
     const z = ((fs - FORM_MIN) / (FORM_MAX - FORM_MIN)) * axisLen;
+    // Sphere size scales with salary so it doubles as a price cue
+    const r = 0.13 + 0.12 * ((p.salary - SAL_MIN) / (SAL_MAX - SAL_MIN));
+    const geo = new THREE.SphereGeometry(r, 16, 12);
     const mat = new THREE.MeshLambertMaterial({ color: pool3DColor(p) });
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
     m.userData.player = p;
+    m.userData.baseScale = 1;
     const inL = LINEUP.find(x => x.name === p.name);
-    if (inL) m.scale.setScalar(1.7);
+    if (inL) m.scale.setScalar(1.6);
     scene.add(m);
     spheres.push({ mesh: m, player: p });
   });
+
+  // Name labels for top-10 by projection within the current filter
+  if (pool3DState.showNames) {
+    const top = pool.slice().sort((a, b) => b.cash_proj - a.cash_proj).slice(0, 10);
+    top.forEach(p => {
+      const x = ((p.salary - SAL_MIN) / (SAL_MAX - SAL_MIN)) * axisLen;
+      const y = (p.cash_proj / PROJ_MAX) * axisLen;
+      const fs = p.form_score !== null ? p.form_score : 0;
+      const z = ((fs - FORM_MIN) / (FORM_MAX - FORM_MIN)) * axisLen;
+      // Use last name for compactness (last space-separated token; full name if one word)
+      const parts = p.name.split(' ');
+      const short = parts.length > 1 ? parts[parts.length - 1] : p.name;
+      const r = 0.13 + 0.12 * ((p.salary - SAL_MIN) / (SAL_MAX - SAL_MIN));
+      const sp = textSprite(short, { fontSize: 22, fillStyle:'#1a1814', bg:'rgba(246,241,231,0.85)', worldHeight: 0.3 });
+      sp.position.set(x, y + r + 0.28, z);
+      scene.add(sp);
+      nameSprites.push(sp);
+    });
+  }
 }
 
 // Init
