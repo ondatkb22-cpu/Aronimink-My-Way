@@ -550,7 +550,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Tuesday, May 12, 2026 &middot; 14:53 UTC<br>
+      Tuesday, May 12, 2026 &middot; 15:03 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1129,7 +1129,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 14:53 UTC &middot; Rory's 5/12 press take added &middot; Hot-Form composite engine live &middot; Knapp OUT, Hoge in (TBD)
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/12/2026 15:03 UTC &middot; Major History blank-table bug fixed &middot; Full UI audit clean &middot; Knapp OUT, Hoge in (TBD)
 </footer>
 
 <script>
@@ -1863,6 +1863,9 @@ function fmtFinish(f) {
   if (!isNaN(n) && n <= 20) return '<span style="color:var(--ink)">'+f+'</span>';
   return f;
 }
+
+// Major History tab state (was missing — caused ReferenceError, blank table)
+let mSort = 'pedigree_score', mDir = 'desc', mFilter = 'all', mSearch = '';
 
 function renderMajorHist(){
   renderPastChamps();
