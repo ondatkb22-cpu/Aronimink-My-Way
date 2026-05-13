@@ -517,10 +517,17 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
   left:0;
   transform:translate3d(0, -50%, 0);
   -webkit-transform:translate3d(0, -50%, 0);
-  padding-left:32px;
   will-change:transform;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
   /* Scroll is driven by JS rAF in pixels — more reliable than CSS
-     animation on iOS Safari for very wide elements. */
+     animation on iOS WebKit for very wide elements. */
+}
+.tt-copy{
+  display:inline-block;
+  white-space:nowrap;
+  padding-left:32px;
+  vertical-align:middle;
 }
 .tt-section{
   display:inline-block;
@@ -688,7 +695,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 13:10 UTC<br>
+      Wednesday, May 13, 2026 &middot; 13:20 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1314,7 +1321,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 13:10 UTC &middot; tape now rAF-driven (iOS fix) &middot; tape = odds + tee times &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 13:20 UTC &middot; iOS tape fix: tt-copy + getBoundingClientRect &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
 </footer>
 
 <script>
@@ -2673,33 +2680,38 @@ document.getElementById('btn-optimize-hot').onclick = () => {
       html += '<span class="tt-item"><span class="tt-time">' + time + '</span><span class="tt-players">' + players + '</span></span>' + sep;
     }
   }
-  // Double the content so we can loop seamlessly by translating one copy width
-  wire.innerHTML = html + html;
+  // Wrap each copy in an inline-block child with explicit max-content width.
+  // iOS WebKit can mis-measure scrollWidth of an absolute element inside a flex
+  // parent; measuring a sized child via getBoundingClientRect is more reliable.
+  wire.innerHTML =
+    '<span class="tt-copy">' + html + '</span>' +
+    '<span class="tt-copy">' + html + '</span>';
 
-  // rAF-driven pixel-perfect scroll — far more reliable on iOS Safari
-  // than CSS animation with a custom-property duration on a very wide element.
   const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduceMotion) {
     return;
   }
   const SPEED = 90; // px/sec
   let pos = 0;
-  let halfPx = 0;
+  let copyPx = 0;
   let lastTime = 0;
   let rafId = null;
   function measure() {
-    // scrollWidth includes the padding-left, so subtract it once for the half
-    halfPx = (wire.scrollWidth - 32) / 2;
+    const firstCopy = wire.querySelector('.tt-copy');
+    if (!firstCopy) return;
+    // getBoundingClientRect is more reliable than scrollWidth in iOS WebKit
+    const r = firstCopy.getBoundingClientRect();
+    if (r.width > 0) copyPx = r.width;
   }
   function step(now) {
-    if (!halfPx) measure();
-    if (halfPx > 0) {
+    if (copyPx <= 0) measure();
+    if (copyPx > 0) {
       if (lastTime) {
         const dt = (now - lastTime) / 1000;
         pos -= SPEED * dt;
-        if (pos <= -halfPx) pos += halfPx;
+        if (pos <= -copyPx) pos += copyPx;
       }
-      // Use translate3d to force GPU compositing on iOS
+      // Both transform and -webkit-transform; use translate3d for GPU layer.
       const t = 'translate3d(' + pos.toFixed(2) + 'px, -50%, 0)';
       wire.style.transform = t;
       wire.style.webkitTransform = t;
@@ -2707,20 +2719,25 @@ document.getElementById('btn-optimize-hot').onclick = () => {
     lastTime = now;
     rafId = requestAnimationFrame(step);
   }
-  // Kick off after a tick so layout has settled (iOS sometimes returns
-  // 0 for scrollWidth on the first paint).
-  setTimeout(() => {
+  // Defer measure + start until layout has settled. Some iOS browsers
+  // return 0 widths on the first paint, so retry until we get something.
+  let measureAttempts = 0;
+  function tryStart() {
     measure();
-    if (typeof requestAnimationFrame === 'function') {
-      rafId = requestAnimationFrame(step);
+    measureAttempts++;
+    if (copyPx > 0 || measureAttempts >= 20) {
+      if (typeof requestAnimationFrame === 'function') {
+        rafId = requestAnimationFrame(step);
+      }
+    } else {
+      setTimeout(tryStart, 100);
     }
-  }, 80);
-  // Re-measure on resize / orientation change
-  window.addEventListener('resize', () => { measure(); }, { passive: true });
-  if (window.visualViewport) {
-    visualViewport.addEventListener('resize', () => { measure(); }, { passive: true });
   }
-  // Pause when the tab is backgrounded (rAF already throttles, but be explicit)
+  setTimeout(tryStart, 50);
+  window.addEventListener('resize', measure, { passive: true });
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', measure, { passive: true });
+  }
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
