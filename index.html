@@ -474,6 +474,36 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
   letter-spacing:0.08em;text-transform:uppercase;
 }
 
+/* Tiny scared golf ball — rolls along the bottom edge periodically */
+.tiny-ball{
+  position:fixed;
+  bottom:6px;left:-40px;
+  width:26px;height:26px;
+  pointer-events:none;
+  z-index:9999;
+  opacity:0;
+  will-change:transform,left;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+}
+.tiny-ball.active{opacity:1}
+.tiny-ball .tb-body{
+  width:100%;height:100%;
+  animation:tb-spin 0.28s linear infinite;
+  transform-origin:50% 50%;
+}
+.tiny-ball .tb-face{
+  transform-origin:13px 13px;
+  animation:tb-counter 0.28s linear infinite;
+}
+.tiny-ball .tb-pupil{
+  transform-origin:center;
+  animation:tb-jitter 0.16s ease-in-out infinite alternate;
+}
+@keyframes tb-spin{from{transform:rotate(0)} to{transform:rotate(360deg)}}
+@keyframes tb-counter{from{transform:rotate(0)} to{transform:rotate(-360deg)}}
+@keyframes tb-jitter{from{transform:translate(0,0)} to{transform:translate(0.3px,-0.2px)}}
+@media(prefers-reduced-motion:reduce){.tiny-ball{display:none}}
+
 /* Floating Lineup Builder */
 .float-builder{
   position:fixed;right:18px;bottom:18px;width:320px;
@@ -615,7 +645,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 03:47 UTC<br>
+      Wednesday, May 13, 2026 &middot; 04:23 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1200,6 +1230,48 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 
 </main>
 
+<!-- Tiny scared golf ball — rolls along the bottom edge every ~25s -->
+<div class="tiny-ball" id="tinyBall" aria-hidden="true">
+  <svg class="tb-body" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="tb-shade" cx="35%" cy="35%" r="65%">
+        <stop offset="0%"  stop-color="#ffffff"/>
+        <stop offset="60%" stop-color="#f4efe5"/>
+        <stop offset="100%" stop-color="#c9bca1"/>
+      </radialGradient>
+    </defs>
+    <circle cx="13" cy="13" r="12" fill="url(#tb-shade)" stroke="#9d2933" stroke-width="0.3"/>
+    <g fill="#a89878" opacity="0.45">
+      <circle cx="9"  cy="5"  r="0.75"/>
+      <circle cx="17" cy="5"  r="0.75"/>
+      <circle cx="5"  cy="10" r="0.75"/>
+      <circle cx="21" cy="10" r="0.75"/>
+      <circle cx="4"  cy="15" r="0.75"/>
+      <circle cx="22" cy="15" r="0.75"/>
+      <circle cx="6"  cy="20" r="0.75"/>
+      <circle cx="20" cy="20" r="0.75"/>
+      <circle cx="13" cy="3"  r="0.75"/>
+      <circle cx="13" cy="23" r="0.75"/>
+    </g>
+  </svg>
+  <svg class="tb-face" viewBox="0 0 26 26" style="position:absolute;inset:0;width:100%;height:100%" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cheeks -->
+    <circle cx="7.5" cy="15"  r="1.6" fill="#ff9aa8" opacity="0.5"/>
+    <circle cx="18.5" cy="15" r="1.6" fill="#ff9aa8" opacity="0.5"/>
+    <!-- Eyes -->
+    <ellipse cx="9"  cy="11" rx="2.2" ry="2.4" fill="#fff" stroke="#1a1814" stroke-width="0.3"/>
+    <ellipse cx="17" cy="11" rx="2.2" ry="2.4" fill="#fff" stroke="#1a1814" stroke-width="0.3"/>
+    <g class="tb-pupil">
+      <circle cx="9.3"  cy="11.3" r="0.8" fill="#1a1814"/>
+      <circle cx="17.3" cy="11.3" r="0.8" fill="#1a1814"/>
+      <circle cx="9.0"  cy="10.9" r="0.25" fill="#fff"/>
+      <circle cx="17.0" cy="10.9" r="0.25" fill="#fff"/>
+    </g>
+    <!-- Open "O" mouth (terrified) -->
+    <ellipse cx="13" cy="17" rx="1.5" ry="1.9" fill="#5a1a1a" stroke="#1a1814" stroke-width="0.3"/>
+  </svg>
+</div>
+
 <!-- Floating Lineup Builder (visible on every tab) -->
 <aside class="float-builder collapsed" id="floatBuilder" aria-label="Lineup Builder">
   <button class="fb-toggle" id="fb-toggle" type="button" aria-expanded="false">
@@ -1234,7 +1306,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 03:47 UTC &middot; 156 active &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 04:23 UTC &middot; 156 active &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
 </footer>
 
 <script>
@@ -2445,6 +2517,41 @@ document.getElementById('btn-optimize-hot').onclick = () => {
   update();
 })();
 
+// Tiny scared golf ball — rolls along the bottom every 25s. Face stays
+// upright via a counter-rotation animation. Tiny, never covers content.
+(function(){
+  const ball = document.getElementById('tinyBall');
+  if (!ball) return;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let inFlight = false;
+  let intervalId = null;
+  function roll() {
+    if (inFlight || document.hidden) return;
+    inFlight = true;
+    const vw = window.innerWidth;
+    const ltr = Math.random() < 0.5;
+    const startX = ltr ? -40 : vw + 40;
+    const endX   = ltr ? vw + 40 : -40;
+    const flipX  = ltr ? 1 : -1;
+    const dur = 4500 + Math.random() * 2000;
+    ball.classList.add('active');
+    const a = ball.animate([
+      { left: startX + 'px', transform: 'scaleX(' + flipX + ')' },
+      { left: endX + 'px',   transform: 'scaleX(' + flipX + ')' }
+    ], { duration: dur, easing: 'linear', fill: 'forwards' });
+    a.onfinish = () => {
+      ball.classList.remove('active');
+      ball.style.left = '-40px';
+      inFlight = false;
+    };
+  }
+  setTimeout(roll, 6000);
+  intervalId = setInterval(roll, 25000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { clearInterval(intervalId); intervalId = null; }
+    else if (!intervalId) { intervalId = setInterval(roll, 25000); }
+  });
+})();
 
 document.getElementById('btn-save').onclick = () => {
   if (LINEUP.length !== SLOTS) {
