@@ -695,7 +695,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 13:38 UTC<br>
+      Wednesday, May 13, 2026 &middot; 16:26 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1321,7 +1321,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 13:38 UTC &middot; tape = odds + R1 only (narrower for iOS) &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 16:26 UTC &middot; optimizer now respects locked players &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
 </footer>
 
 <script>
@@ -2458,27 +2458,46 @@ function knapsackPicks(pool, SAL_MIN, SAL_MAX, slots, scoreFn){
   return picks.reverse();
 }
 
-function optimizeLineup(SAL_MIN, SAL_MAX){
-  const cap = SAL_MAX || CAP;
-  const pool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0 && p.salary <= cap);
-  return knapsackPicks(pool, SAL_MIN, cap, SLOTS);
+// Run knapsack on `basePool`, but treat the current LINEUP as locked
+// players that stay put. Computes remaining slots + remaining salary
+// budget, filters out already-picked names from the pool, then fills.
+// Returns the FILL picks only (not the locks), or null if infeasible.
+function knapsackWithLocks(basePool, scoreFn){
+  const SAL_MIN = 49500;
+  const SAL_MAX = 49900;
+  if (LINEUP.length >= SLOTS) return { full: true };
+  const lockedSalary = LINEUP.reduce((s, p) => s + p.salary, 0);
+  if (lockedSalary > SAL_MAX) return { overcap: true, lockedSalary };
+  const remainingSlots = SLOTS - LINEUP.length;
+  const newMin = Math.max(0, SAL_MIN - lockedSalary);
+  const newMax = SAL_MAX - lockedSalary;
+  const lockedNames = new Set(LINEUP.map(p => p.name));
+  const pool = basePool.filter(p =>
+    p.salary <= newMax && !lockedNames.has(p.name)
+  );
+  if (pool.length < remainingSlots) return null;
+  const picks = knapsackPicks(pool, newMin, newMax, remainingSlots, scoreFn);
+  return picks; // array of player objects, or null if infeasible
+}
+
+function optimizeLineup(){
+  const basePool = PLAYERS.filter(p => p.cash_proj > 0 && p.salary > 0);
+  return knapsackWithLocks(basePool, null);
 }
 
 // Hot-Form engine: restrict pool to players showing momentum
 // (any of: 2025/26 major top-10, frequent recent top-10s,
 // HOT/TRENDING DG form, or LOCKED/TRENDING composite tag),
-// then run knapsack for the top-projected lineup in $49.5k-$49.9k.
-function optimizeHotForm(SAL_MIN, SAL_MAX){
+// then run knapsack for the top-projected lineup. Locks are respected.
+function optimizeHotForm(){
   const isTop10 = s => {
     if (!s || s === '?' || s === '—' || s === 'MC') return false;
     if (s === 'WIN') return true;
     const n = parseInt(String(s).replace(/^T/, ''), 10);
     return !isNaN(n) && n <= 10;
   };
-  const cap = SAL_MAX || 49900;
-  const min = SAL_MIN || 49500;
-  const pool = PLAYERS.filter(p => {
-    if (!(p.cash_proj > 0 && p.salary > 0 && p.salary <= cap)) return false;
+  const basePool = PLAYERS.filter(p => {
+    if (!(p.cash_proj > 0 && p.salary > 0)) return false;
     const recentMajorTop10 = p.has_major_data && (
       isTop10(p.masters_2026) || isTop10(p.pga_2025) ||
       isTop10(p.us_open_2025) || isTop10(p.open_2025) || isTop10(p.masters_2025)
@@ -2488,21 +2507,36 @@ function optimizeHotForm(SAL_MIN, SAL_MAX){
     const trending     = p.tag === 'LOCKED' || p.tag === 'TRENDING';
     return recentMajorTop10 || frequentT10 || hotDg || trending;
   });
-  return knapsackPicks(pool, min, cap, SLOTS, effectiveProj);
+  return knapsackWithLocks(basePool, effectiveProj);
+}
+
+function runOptimizerAppend(picks, mode){
+  if (picks && picks.full) {
+    alert('Lineup already full (' + SLOTS + '/' + SLOTS + '). Hit Clear to reset.');
+    return;
+  }
+  if (picks && picks.overcap) {
+    alert('Your locked players already total $' + picks.lockedSalary.toLocaleString() +
+          ' — over the $49,900 cap. Remove one before re-optimizing.');
+    return;
+  }
+  if (!picks || !Array.isArray(picks)) {
+    const lockNote = LINEUP.length > 0
+      ? ' with your ' + LINEUP.length + ' locked player(s)'
+      : '';
+    alert('No feasible 6-player ' + mode + ' lineup' + lockNote + ' in $49,500–$49,900. Try removing a lock or pick a different target.');
+    return;
+  }
+  LINEUP = LINEUP.concat(picks);
+  refreshAllTabs();
 }
 
 document.getElementById('btn-optimize').onclick = () => {
-  const picks = optimizeLineup(49500, 49900);
-  if (!picks) { alert('No feasible 6-player lineup in $49,500–$49,900.'); return; }
-  LINEUP = picks;
-  refreshAllTabs();
+  runOptimizerAppend(optimizeLineup(), 'projection');
 };
 
 document.getElementById('btn-optimize-hot').onclick = () => {
-  const picks = optimizeHotForm(49500, 49900);
-  if (!picks) { alert('Hot-form pool too thin for a $49,500–$49,900 lineup.'); return; }
-  LINEUP = picks;
-  refreshAllTabs();
+  runOptimizerAppend(optimizeHotForm(), 'hot-form');
 };
 
 // Floating-builder toggle
