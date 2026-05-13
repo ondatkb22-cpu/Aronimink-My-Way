@@ -522,174 +522,122 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
   will-change:transform,top,left,opacity;
 }
 
-/* Demon-robot locust — burgundy/gold theme, devil horns, glowing red eyes,
-   spiked back, fanged mandibles, twin booster jets shooting flame trails */
-.term-locust{
+/* Angry honking goose — classic golf-course menace */
+.angry-goose{
   position:fixed;
-  width:130px;height:60px;
+  width:90px;height:60px;
   top:-200px;left:-200px;
   pointer-events:none;
   z-index:9999;
   opacity:0;
   will-change:transform,top,left;
-  filter:drop-shadow(0 4px 6px rgba(0,0,0,0.55)) drop-shadow(0 0 8px rgba(157,41,51,0.55));
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,0.35));
   transform-origin:50% 50%;
 }
-.term-locust.active{opacity:1}
-.term-locust .tl-wings{transform-origin:62px 22px}
-.term-locust .tl-wing-back{
-  transform-origin:62px 22px;
-  animation:tl-wing-back 60ms ease-in-out infinite alternate;
+.angry-goose.active{opacity:1}
+.angry-goose .ag-wing{
+  transform-origin:48px 30px;
+  animation:ag-flap 140ms ease-in-out infinite alternate;
 }
-.term-locust .tl-wing-front{
-  transform-origin:56px 22px;
-  animation:tl-wing-front 50ms ease-in-out infinite alternate;
+.angry-goose .ag-wing-back{
+  transform-origin:50px 28px;
+  animation:ag-flap-back 130ms ease-in-out infinite alternate;
 }
-.term-locust .tl-eye-glow{
-  animation:tl-eye-pulse 0.9s ease-in-out infinite alternate;
+.angry-goose .ag-feet{
+  animation:ag-feet 220ms ease-in-out infinite alternate;
+  transform-origin:50% 50%;
 }
-.term-locust .tl-flame{transform-origin:115px 31px;animation:tl-flame 110ms steps(3) infinite alternate}
-.term-locust .tl-flame-2{transform-origin:115px 37px;animation:tl-flame 95ms steps(3) infinite alternate}
-.term-locust .tl-flame-inner{transform-origin:115px 31px;animation:tl-flame-inner 75ms steps(2) infinite alternate}
-.term-locust .tl-flame-inner-2{transform-origin:115px 37px;animation:tl-flame-inner 65ms steps(2) infinite alternate}
-.term-locust .tl-spark{animation:tl-spark 1.4s ease-out infinite}
-.term-locust .tl-spark-2{animation:tl-spark 1.4s ease-out infinite 0.4s}
-.term-locust .tl-spark-3{animation:tl-spark 1.4s ease-out infinite 0.8s}
-@keyframes tl-wing-back{
-  from{transform:rotate(-14deg) scaleY(0.4)}
-  to  {transform:rotate(20deg)  scaleY(1.1)}
+@keyframes ag-flap{
+  from{transform:rotate(-22deg) scaleY(0.55)}
+  to  {transform:rotate(28deg)  scaleY(1.05)}
 }
-@keyframes tl-wing-front{
-  from{transform:rotate(-20deg) scaleY(0.3)}
-  to  {transform:rotate(24deg)  scaleY(1)}
+@keyframes ag-flap-back{
+  from{transform:rotate(-28deg) scaleY(0.45)}
+  to  {transform:rotate(20deg)  scaleY(1)}
 }
-@keyframes tl-eye-pulse{
-  from{opacity:0.7;filter:brightness(0.9)}
-  to  {opacity:1;  filter:brightness(1.4)}
-}
-@keyframes tl-flame{
-  from{transform:scale(0.85,0.7);opacity:0.65}
-  to  {transform:scale(1.25,1.05);opacity:1}
-}
-@keyframes tl-flame-inner{
-  from{transform:scale(0.8,0.7);opacity:0.85}
-  to  {transform:scale(1.15,1);opacity:1}
-}
-@keyframes tl-spark{
-  0%   {opacity:0;     transform:translate(0,0)    scale(0.5)}
-  10%  {opacity:1}
-  100% {opacity:0;     transform:translate(15px,0) scale(0.2)}
+@keyframes ag-feet{
+  from{transform:translateY(0)}
+  to  {transform:translateY(1.5px)}
 }
 
-/* Speech bubble — shown when the locust pauses center-screen */
-.tl-taunt-bubble{
+/* "HONK!" speech bubble — comic-book style */
+.honk-bubble{
   position:fixed;
   top:-300px;left:-300px;
   pointer-events:none;
   z-index:10000;
-  background:linear-gradient(180deg, #fff5d0, #f4efe5);
-  border:3px solid #9d2933;
-  border-radius:14px;
-  padding:12px 18px;
+  background:#fff5d0;
+  border:3px solid #1a1814;
+  border-radius:50% 50% 50% 10%;
+  padding:8px 14px 6px;
   font-family:'Fraunces', serif;
-  font-weight:800;
+  font-weight:900;
   color:#9d2933;
   text-align:center;
-  font-size:18px;
-  letter-spacing:0.05em;
-  line-height:1.05;
+  font-size:20px;
+  letter-spacing:0.08em;
+  line-height:1;
   opacity:0;
-  filter:drop-shadow(0 6px 14px rgba(0,0,0,0.35));
-  text-shadow:1px 1px 0 #d4a93a;
-  white-space:nowrap;
-  transition:opacity 0.25s ease;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  text-shadow:1.5px 1.5px 0 #d4a93a, 2.5px 2.5px 0 #1a1814;
+  transform:rotate(-5deg);
+  transition:opacity 0.2s ease;
 }
-.tl-taunt-bubble.show{opacity:1}
-.tl-taunt-bubble::before{
-  content:'';position:absolute;
-  bottom:-12px;left:24px;
-  width:0;height:0;
-  border-left:9px solid transparent;
-  border-right:9px solid transparent;
-  border-top:12px solid #9d2933;
-}
-.tl-taunt-bubble::after{
-  content:'';position:absolute;
-  bottom:-7px;left:27px;
-  width:0;height:0;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-top:8px solid #f4efe5;
-}
-.tl-taunt-bubble .tl-tb-sub{
-  display:block;
-  font-size:10px;font-weight:600;
-  font-family:'JetBrains Mono', monospace;
-  color:#6b6354;
-  letter-spacing:0.14em;
-  text-transform:uppercase;
-  margin-top:4px;
-  text-shadow:none;
-}
+.honk-bubble.show{opacity:1}
 
-/* Laser bolts fired by the Skynet locust */
-.tl-bolt{
+/* Golf hole + flagstick — appears center-screen when the ball sneaks in */
+.golf-hole{
   position:fixed;
-  width:18px;height:3px;
-  pointer-events:none;z-index:9998;
-  opacity:0;left:-100px;top:-100px;
-  border-radius:2px;
-  background:linear-gradient(90deg, rgba(255,200,80,0), #ffe680, #ff3030, rgba(255,30,30,0.2));
-  box-shadow:0 0 6px rgba(255,30,30,0.85), 0 0 14px rgba(255,80,40,0.55);
-  will-change:transform,top,left,opacity;
-}
-
-/* Skynet drone interceptor — angular fighter that flies on its own cycle */
-.skynet-ship{
-  position:fixed;
-  width:120px;height:50px;
+  width:50px;height:70px;
   top:-200px;left:-200px;
   pointer-events:none;
-  z-index:9999;
+  z-index:9997; /* below the ball so it can drop into it */
   opacity:0;
-  will-change:transform,top,left;
-  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.55)) drop-shadow(0 0 10px rgba(212,169,58,0.45));
-  transform-origin:50% 50%;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,0.45));
+  transition:opacity 0.35s ease;
 }
-.skynet-ship.active{opacity:1}
-.skynet-ship .ss-engine{
-  transform-origin:96px 25px;
-  animation:ss-thrust 90ms steps(2) infinite alternate;
-}
-.skynet-ship .ss-engine-2{
-  transform-origin:96px 30px;
-  animation:ss-thrust 75ms steps(2) infinite alternate;
-}
-.skynet-ship .ss-engine-inner{
-  transform-origin:96px 25px;
-  animation:ss-thrust-inner 55ms steps(2) infinite alternate;
-}
-.skynet-ship .ss-engine-inner-2{
-  transform-origin:96px 30px;
-  animation:ss-thrust-inner 50ms steps(2) infinite alternate;
-}
-.skynet-ship .ss-light{animation:ss-blink 0.9s steps(2) infinite}
-.skynet-ship .ss-light-2{animation:ss-blink 1.1s steps(2) infinite 0.4s}
-@keyframes ss-thrust{
-  from{transform:scale(0.8,0.7);opacity:0.7}
-  to  {transform:scale(1.2,1.05);opacity:1}
-}
-@keyframes ss-thrust-inner{
-  from{transform:scale(0.85,0.7);opacity:0.85}
-  to  {transform:scale(1.15,1);opacity:1}
-}
-@keyframes ss-blink{
-  from{opacity:0.25}
-  to  {opacity:1}
+.golf-hole.show{opacity:1}
+.golf-hole.shake{animation:gh-flag-wave 0.7s ease-in-out infinite alternate}
+@keyframes gh-flag-wave{
+  from{transform:rotate(-1deg)}
+  to  {transform:rotate(2deg)}
 }
 
+/* PLOP comic bubble */
+.plop-bubble{
+  position:fixed;
+  top:-300px;left:-300px;
+  pointer-events:none;
+  z-index:10000;
+  background:#fff5d0;
+  border:3px solid #1a1814;
+  border-radius:18px 22px 16px 24px;
+  padding:8px 16px 8px;
+  font-family:'Fraunces',serif;
+  text-align:center;
+  letter-spacing:0.04em;
+  transform:rotate(6deg) scale(0.6);
+  opacity:0;
+  transition:transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+}
+.plop-bubble .plop-big{
+  display:block;font-weight:900;color:#3f5d3a;
+  font-size:24px;line-height:1;
+  letter-spacing:0.08em;
+  text-shadow:1.5px 1.5px 0 #d4a93a, 2.5px 2.5px 0 #1a1814;
+}
+.plop-bubble .plop-sub{
+  display:block;
+  font-family:'Fraunces',serif;font-style:italic;
+  font-weight:600;color:#1a1814;
+  font-size:11px;margin-top:4px;
+  letter-spacing:0.02em;
+  text-shadow:none;
+}
+.plop-bubble.show{opacity:1;transform:rotate(6deg) scale(1)}
+
 @media(prefers-reduced-motion:reduce){
-  .golf-flyer, .gf-trail-dot, .term-locust, .tl-bolt, .skynet-ship{display:none}
+  .golf-flyer, .gf-trail-dot, .angry-goose, .honk-bubble, .golf-hole, .plop-bubble{display:none}
 }
 
 /* iOS notch / home-bar safe areas */
@@ -839,7 +787,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 03:17 UTC<br>
+      Wednesday, May 13, 2026 &middot; 03:28 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1476,223 +1424,82 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
   </svg>
 </div>
 
-<!-- Demon-robot locust — dark burgundy/gold, devil horns, fanged mandibles,
-     spiked back, twin booster jets, theme-palette throughout -->
-<svg class="term-locust" id="termLocust" viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<!-- Angry honking goose — golf course menace -->
+<svg class="angry-goose" id="angryGoose" viewBox="0 0 90 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <defs>
-    <linearGradient id="tl-body" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%"  stop-color="#3a352b"/>
-      <stop offset="45%" stop-color="#1a1814"/>
-      <stop offset="100%" stop-color="#0a0805"/>
-    </linearGradient>
-    <linearGradient id="tl-wing" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%"  stop-color="rgba(157,41,51,0.65)"/>
-      <stop offset="55%" stop-color="rgba(157,41,51,0.20)"/>
-      <stop offset="100%" stop-color="rgba(212,169,58,0.05)"/>
-    </linearGradient>
-    <radialGradient id="tl-eye" cx="45%" cy="40%" r="60%">
-      <stop offset="0%"  stop-color="#ffe7a0"/>
-      <stop offset="18%" stop-color="#ff5050"/>
-      <stop offset="55%" stop-color="#9d2933"/>
-      <stop offset="100%" stop-color="#2a0000"/>
+    <radialGradient id="goose-body" cx="40%" cy="40%" r="60%">
+      <stop offset="0%"  stop-color="#ffffff"/>
+      <stop offset="75%" stop-color="#f4efe5"/>
+      <stop offset="100%" stop-color="#c9bca1"/>
     </radialGradient>
-    <radialGradient id="tl-flame-grad" cx="0%" cy="50%" r="100%">
-      <stop offset="0%"  stop-color="#fff5d0"/>
-      <stop offset="20%" stop-color="#ffcc4a"/>
-      <stop offset="55%" stop-color="#d4a93a"/>
-      <stop offset="85%" stop-color="#9d2933"/>
-      <stop offset="100%" stop-color="rgba(157,41,51,0)"/>
-    </radialGradient>
-    <filter id="tl-redglow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="1.8" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-
-  <!-- Booster flame trails (drawn first so body covers their roots) -->
-  <g>
-    <ellipse class="tl-flame"       cx="125" cy="31" rx="14" ry="3.5" fill="url(#tl-flame-grad)"/>
-    <ellipse class="tl-flame-inner" cx="121" cy="31" rx="8"  ry="2"   fill="url(#tl-flame-grad)"/>
-    <ellipse class="tl-flame-2"       cx="125" cy="37" rx="14" ry="3.5" fill="url(#tl-flame-grad)"/>
-    <ellipse class="tl-flame-inner-2" cx="121" cy="37" rx="8"  ry="2"   fill="url(#tl-flame-grad)"/>
-    <!-- Trailing sparks -->
-    <circle class="tl-spark"   cx="118" cy="32" r="0.8" fill="#d4a93a"/>
-    <circle class="tl-spark-2" cx="118" cy="35" r="0.6" fill="#ffcc4a"/>
-    <circle class="tl-spark-3" cx="118" cy="36" r="0.7" fill="#9d2933"/>
+  <!-- Tail feathers -->
+  <path d="M 68 30 L 86 24 L 84 36 L 70 36 Z" fill="#1a1814"/>
+  <!-- Back wing -->
+  <ellipse class="ag-wing-back" cx="50" cy="28" rx="20" ry="9" fill="#3a352b" stroke="#1a1814" stroke-width="0.5"/>
+  <!-- Body -->
+  <ellipse cx="48" cy="34" rx="22" ry="12" fill="url(#goose-body)" stroke="#1a1814" stroke-width="0.7"/>
+  <!-- Wing (foreground, flaps) -->
+  <path class="ag-wing" d="M 30 28 Q 48 22 66 30 L 64 34 L 32 34 Z" fill="#2a251e" stroke="#1a1814" stroke-width="0.4"/>
+  <!-- Orange feet -->
+  <g class="ag-feet" stroke="#ff8c00" stroke-width="1" fill="none" stroke-linecap="round">
+    <path d="M 40 46 L 39 53"/>
+    <path d="M 39 53 L 36 54"/>
+    <path d="M 39 53 L 42 54"/>
+    <path d="M 50 46 L 51 53"/>
+    <path d="M 51 53 L 48 54"/>
+    <path d="M 51 53 L 54 54"/>
   </g>
+  <!-- Neck (S-curve from body to head) -->
+  <path d="M 28 30 Q 20 22 16 14 Q 14 9 18 6" stroke="#1a1814" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 28 30 Q 20 22 16 14 Q 14 9 18 6" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <!-- Head -->
+  <circle cx="18" cy="6" r="6" fill="url(#goose-body)" stroke="#1a1814" stroke-width="0.6"/>
+  <!-- Open beak (yelling) -->
+  <path d="M 12 5 L 2 5 L 12 8 Z" fill="#ff8c00" stroke="#1a1814" stroke-width="0.4"/>
+  <path d="M 12 6 L 4 7 L 12 7.5 Z" fill="#5a1a1a"/>
+  <!-- Angry eye + furious brow -->
+  <circle cx="19" cy="4" r="1.1" fill="#fff" stroke="#1a1814" stroke-width="0.3"/>
+  <circle cx="19.3" cy="4.2" r="0.65" fill="#1a1814"/>
+  <line x1="14" y1="1.5" x2="22" y2="3" stroke="#9d2933" stroke-width="1.1" stroke-linecap="round"/>
+</svg>
 
-  <!-- Booster nozzles (black with gold rim) -->
-  <rect x="108" y="28.5" width="7" height="5" rx="0.6" fill="#0a0805" stroke="#d4a93a" stroke-width="0.5"/>
-  <rect x="108" y="34.5" width="7" height="5" rx="0.6" fill="#0a0805" stroke="#d4a93a" stroke-width="0.5"/>
-  <circle cx="111.5" cy="31" r="1" fill="#d4a93a" opacity="0.85"/>
-  <circle cx="111.5" cy="37" r="1" fill="#d4a93a" opacity="0.85"/>
+<!-- "HONK!" comic bubble -->
+<div class="honk-bubble" id="honkBubble" aria-hidden="true">HONK!</div>
 
-  <!-- Six mechanical legs with hydraulic joints -->
-  <g stroke="#1a1814" stroke-linecap="round" fill="none">
-    <path d="M 32 40 L 34 52 L 28 58" stroke-width="1.1"/>
-    <path d="M 40 40 L 43 51 L 49 55" stroke-width="1.1"/>
-    <path d="M 50 40 L 54 53 L 60 56" stroke-width="1.1"/>
-    <path d="M 58 40 L 62 52 L 68 55" stroke-width="1.1"/>
-    <path d="M 78 36 L 94 30 L 106 38 L 110 56" stroke-width="1.7"/>
-    <path d="M 78 38 L 92 36 L 102 44 L 106 60" stroke-width="1.7"/>
-  </g>
-  <g fill="#d4a93a" stroke="#1a1814" stroke-width="0.25">
-    <circle cx="34" cy="52" r="0.9"/>
-    <circle cx="43" cy="51" r="0.9"/>
-    <circle cx="54" cy="53" r="0.9"/>
-    <circle cx="62" cy="52" r="0.9"/>
-    <circle cx="94" cy="30" r="1.3"/>
-    <circle cx="106" cy="38" r="1.3"/>
-  </g>
-
-  <!-- Abdomen — segmented angular shape ending at the boosters -->
-  <path d="M 70 28 Q 92 25 110 27 L 110 41 Q 92 43 70 40 Z" fill="url(#tl-body)" stroke="#d4a93a" stroke-width="0.5"/>
-  <g stroke="#d4a93a" stroke-width="0.3" opacity="0.7">
-    <line x1="78" y1="27" x2="78" y2="41"/>
-    <line x1="86" y1="26" x2="86" y2="42"/>
-    <line x1="94" y1="26" x2="94" y2="42"/>
-    <line x1="102" y1="27" x2="102" y2="41"/>
-  </g>
-  <!-- Spiked back ridge -->
-  <g fill="#1a1814" stroke="#d4a93a" stroke-width="0.35">
-    <path d="M 76 27 L 78 21 L 82 27 Z"/>
-    <path d="M 84 26 L 87 19 L 90 26 Z"/>
-    <path d="M 92 26 L 95 20 L 98 26 Z"/>
-    <path d="M 100 27 L 103 21 L 106 27 Z"/>
-  </g>
-  <!-- "SKYNET-9" brand stamped in gold (origin marker) -->
-  <text x="90" y="34" font-family="JetBrains Mono, monospace" font-size="3.4" font-weight="900"
-        text-anchor="middle" fill="#d4a93a" stroke="#1a1814" stroke-width="0.15" opacity="0.95"
-        letter-spacing="0.5">SKYNET-9</text>
-  <text x="90" y="39" font-family="JetBrains Mono, monospace" font-size="2.4" font-weight="700"
-        text-anchor="middle" fill="#9d2933" opacity="0.85">A.I. UNIT</text>
-
-  <!-- Thorax — angular plate -->
-  <path d="M 54 22 L 70 22 L 72 31 L 68 41 L 56 41 L 50 31 Z" fill="url(#tl-body)" stroke="#d4a93a" stroke-width="0.5"/>
-  <!-- Chest reactor (pulsing red) -->
-  <circle cx="61" cy="31" r="3.4" fill="#1a1814" stroke="#d4a93a" stroke-width="0.4"/>
-  <circle cx="61" cy="31" r="1.9" fill="url(#tl-eye)" class="tl-eye-glow"/>
-  <text x="61" y="40" font-family="JetBrains Mono, monospace" font-size="2.7" font-weight="800"
-        text-anchor="middle" fill="#d4a93a" opacity="0.9">PGA</text>
-
-  <!-- Head — angular demon-skull -->
-  <path d="M 30 26 L 42 22 L 48 30 L 42 41 L 30 39 L 22 32 Z" fill="url(#tl-body)" stroke="#d4a93a" stroke-width="0.5"/>
-
-  <!-- Devil horns (replace antennae): two curved horns -->
-  <path d="M 38 23 Q 32 13 26 4 Q 30 6 33 10 Q 36 14 39 21" fill="#1a1814" stroke="#d4a93a" stroke-width="0.8" stroke-linejoin="round"/>
-  <path d="M 44 24 Q 48 12 50 2 Q 50 8 49 13 Q 47 18 45 23" fill="#1a1814" stroke="#d4a93a" stroke-width="0.8" stroke-linejoin="round"/>
-
-  <!-- Fanged mandibles jutting forward -->
-  <path d="M 22 32 L 14 35 L 21 37 Z" fill="#1a1814" stroke="#d4a93a" stroke-width="0.3"/>
-  <path d="M 22 36 L 12 39 L 20 40 Z" fill="#1a1814" stroke="#d4a93a" stroke-width="0.3"/>
-
-  <!-- Glowing primary eye with bloom -->
-  <g filter="url(#tl-redglow)">
-    <circle cx="32" cy="30" r="3.8" fill="url(#tl-eye)" class="tl-eye-glow"/>
-  </g>
-  <circle cx="31" cy="29" r="0.7" fill="#fff"/>
-  <!-- Cluster eyes (small accent eyes) -->
-  <g fill="#9d2933" filter="url(#tl-redglow)">
-    <circle cx="37" cy="26" r="0.8"/>
-    <circle cx="41" cy="30" r="0.8"/>
-    <circle cx="38" cy="34" r="0.7"/>
-  </g>
-
-  <!-- Plate rivets in gold -->
-  <g fill="#d4a93a" opacity="0.85">
-    <circle cx="42" cy="36" r="0.4"/>
-    <circle cx="52" cy="38" r="0.4"/>
-    <circle cx="68" cy="38" r="0.4"/>
-    <circle cx="20" cy="36" r="0.35"/>
-  </g>
-
-  <!-- Wings (dark with burgundy gradient + gold-ish struts) -->
-  <g class="tl-wings">
-    <ellipse class="tl-wing tl-wing-back"  cx="62" cy="18" rx="36" ry="11" fill="url(#tl-wing)" stroke="#9d2933" stroke-width="0.45"/>
-    <ellipse class="tl-wing tl-wing-front" cx="56" cy="20" rx="30" ry="9"  fill="url(#tl-wing)" stroke="#9d2933" stroke-width="0.45"/>
-    <g stroke="#d4a93a" stroke-width="0.3" opacity="0.6">
-      <line x1="28" y1="20" x2="92" y2="16"/>
-      <line x1="32" y1="22" x2="88" y2="18"/>
-      <line x1="36" y1="14" x2="84" y2="22"/>
-    </g>
+<!-- Golf hole with flagstick — appears when the ball sneaks in -->
+<svg class="golf-hole" id="golfHole" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <radialGradient id="gh-shadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#0a0805"/>
+      <stop offset="80%" stop-color="#1a1814"/>
+      <stop offset="100%" stop-color="rgba(26,24,20,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- Flagstick -->
+  <line x1="25" y1="10" x2="25" y2="58" stroke="#1a1814" stroke-width="1.5"/>
+  <!-- Pennant flag with PGA -->
+  <path d="M 25 10 L 45 16 L 25 22 Z" fill="#9d2933" stroke="#1a1814" stroke-width="0.6"/>
+  <text x="32" y="18" font-family="JetBrains Mono, monospace" font-size="4.5" font-weight="900"
+        text-anchor="middle" fill="#d4a93a">PGA</text>
+  <!-- Hole opening (dark ellipse) -->
+  <ellipse cx="25" cy="60" rx="18" ry="5" fill="#1a1814"/>
+  <ellipse cx="25" cy="59" rx="16" ry="3.5" fill="url(#gh-shadow)"/>
+  <!-- Grass tufts around hole -->
+  <g stroke="#3f5d3a" stroke-width="1" stroke-linecap="round" fill="none">
+    <path d="M 6 60 L 7 56"/>
+    <path d="M 9 61 L 10 57"/>
+    <path d="M 44 60 L 43 56"/>
+    <path d="M 41 61 L 40 57"/>
   </g>
 </svg>
 
-<!-- Skynet taunt speech bubble — shown when the locust pauses center-screen -->
-<div class="tl-taunt-bubble" id="tlTauntBubble" aria-hidden="true">
-  DON'T F**K THIS UP
-  <span class="tl-tb-sub">— Skynet, supervising</span>
+<!-- "PLOP!" comic bubble shown when the ball drops in -->
+<div class="plop-bubble" id="plopBubble" aria-hidden="true">
+  <span class="plop-big">PLOP!</span>
+  <span class="plop-sub">what&rsquo;s your gut telling you?</span>
 </div>
 
-<!-- Skynet drone interceptor — angular fighter that flies on its own cycle -->
-<svg class="skynet-ship" id="skynetShip" viewBox="0 0 120 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <defs>
-    <linearGradient id="ss-body" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%"  stop-color="#3a352b"/>
-      <stop offset="50%" stop-color="#1a1814"/>
-      <stop offset="100%" stop-color="#0a0805"/>
-    </linearGradient>
-    <radialGradient id="ss-flame" cx="0%" cy="50%" r="100%">
-      <stop offset="0%"  stop-color="#fff5d0"/>
-      <stop offset="25%" stop-color="#ffcc4a"/>
-      <stop offset="60%" stop-color="#d4a93a"/>
-      <stop offset="90%" stop-color="#9d2933"/>
-      <stop offset="100%" stop-color="rgba(157,41,51,0)"/>
-    </radialGradient>
-    <radialGradient id="ss-cockpit" cx="40%" cy="40%" r="60%">
-      <stop offset="0%"  stop-color="#ffe7a0"/>
-      <stop offset="40%" stop-color="#ff5050"/>
-      <stop offset="100%" stop-color="#2a0000"/>
-    </radialGradient>
-    <filter id="ss-glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="1.4" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <!-- Engine flames trailing from rear -->
-  <ellipse class="ss-engine"       cx="108" cy="22" rx="14" ry="3" fill="url(#ss-flame)"/>
-  <ellipse class="ss-engine-inner" cx="105" cy="22" rx="8"  ry="1.8" fill="url(#ss-flame)"/>
-  <ellipse class="ss-engine-2"       cx="108" cy="30" rx="14" ry="3" fill="url(#ss-flame)"/>
-  <ellipse class="ss-engine-inner-2" cx="105" cy="30" rx="8"  ry="1.8" fill="url(#ss-flame)"/>
-  <!-- Engine nozzles -->
-  <rect x="92" y="20" width="8" height="4.5" rx="0.5" fill="#0a0805" stroke="#d4a93a" stroke-width="0.4"/>
-  <rect x="92" y="27.5" width="8" height="4.5" rx="0.5" fill="#0a0805" stroke="#d4a93a" stroke-width="0.4"/>
-  <!-- Wings (swept-back delta) -->
-  <path d="M 50 20 L 88 14 L 92 22 L 60 26 Z" fill="url(#ss-body)" stroke="#d4a93a" stroke-width="0.5"/>
-  <path d="M 50 30 L 88 36 L 92 28 L 60 24 Z" fill="url(#ss-body)" stroke="#d4a93a" stroke-width="0.5"/>
-  <!-- Wing weapon pylons -->
-  <rect x="64" y="14" width="14" height="2" fill="#1a1814" stroke="#9d2933" stroke-width="0.3"/>
-  <rect x="64" y="34" width="14" height="2" fill="#1a1814" stroke="#9d2933" stroke-width="0.3"/>
-  <!-- Missile tips -->
-  <path d="M 78 14 L 82 15 L 78 16 Z" fill="#9d2933"/>
-  <path d="M 78 34 L 82 35 L 78 36 Z" fill="#9d2933"/>
-  <!-- Main fuselage (angular dart) -->
-  <path d="M 5 25 L 30 18 L 90 20 L 96 25 L 90 30 L 30 32 Z" fill="url(#ss-body)" stroke="#d4a93a" stroke-width="0.55"/>
-  <!-- Fuselage panel lines -->
-  <g stroke="#d4a93a" stroke-width="0.25" opacity="0.65">
-    <line x1="40" y1="22" x2="40" y2="28"/>
-    <line x1="55" y1="21" x2="55" y2="29"/>
-    <line x1="70" y1="21" x2="70" y2="29"/>
-    <line x1="85" y1="22" x2="85" y2="28"/>
-  </g>
-  <!-- Cockpit canopy (glowing red) -->
-  <g filter="url(#ss-glow)">
-    <ellipse cx="22" cy="24" rx="9" ry="3.5" fill="url(#ss-cockpit)"/>
-  </g>
-  <ellipse cx="20" cy="23" rx="2" ry="0.7" fill="rgba(255,255,255,0.7)"/>
-  <!-- Nose with cannon -->
-  <path d="M 5 25 L 0 24 L 0 26 Z" fill="#1a1814"/>
-  <circle cx="0" cy="25" r="0.8" fill="#9d2933" class="ss-light"/>
-  <!-- Vertical stabilizer -->
-  <path d="M 75 20 L 88 8 L 90 20 Z" fill="url(#ss-body)" stroke="#d4a93a" stroke-width="0.4"/>
-  <!-- SKYNET stamp -->
-  <text x="58" y="26" font-family="JetBrains Mono, monospace" font-size="3.2" font-weight="900"
-        text-anchor="middle" fill="#d4a93a" stroke="#1a1814" stroke-width="0.12"
-        letter-spacing="0.4">SKYNET</text>
-  <!-- Navigation lights -->
-  <circle cx="50" cy="20" r="0.7" fill="#9d2933" class="ss-light"/>
-  <circle cx="50" cy="30" r="0.7" fill="#d4a93a" class="ss-light-2"/>
-</svg>
 
 <!-- Floating Lineup Builder (visible on every tab) -->
 <aside class="float-builder collapsed" id="floatBuilder" aria-label="Lineup Builder">
@@ -1728,7 +1535,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 03:17 UTC &middot; Skynet swarm overhead &middot; locust + ship + ball alternate every ~10s &middot; 156 active
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 03:28 UTC &middot; honking goose + sneaky putt-drop golf ball &middot; 156 active
 </footer>
 
 <script>
@@ -2986,10 +2793,96 @@ document.getElementById('btn-optimize-hot').onclick = () => {
     return { x, y: ground - arc };
   }
 
+  let flightCount = 0;
+  const hole = document.getElementById('golfHole');
+  const plop = document.getElementById('plopBubble');
+
+  // Sneak-into-hole sequence: every 3rd ball flight, instead of the
+  // bouncing drive the ball wobbles into a pin and drops in with PLOP!
+  function sneakFly() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    // Place the hole roughly center-screen (slight randomness)
+    const holeX = vw * (0.42 + Math.random() * 0.16);
+    const holeY = vh * (0.55 + Math.random() * 0.15);
+    if (hole) {
+      hole.style.left = (holeX - 25) + 'px';
+      hole.style.top  = (holeY - 60) + 'px';
+      hole.classList.add('show');
+      hole.classList.add('shake');
+    }
+    // Approach from the left edge, roll along the ground, slow near the hole
+    const startX = -40;
+    const approachX = holeX - 50; // come up next to the hole
+    const wobbleX = holeX - 28;
+    const finalX  = holeX;
+    const groundY = holeY - 8;    // ball sits just above hole opening
+    ball.classList.add('active');
+    ball.style.left = (startX - 14) + 'px';
+    ball.style.top  = (groundY - 14) + 'px';
+
+    // 1) Roll in to next-to-hole (2.4s, ease-out)
+    const rollIn = ball.animate([
+      { left: (startX - 14) + 'px', top: (groundY - 14) + 'px' },
+      { left: (approachX - 14) + 'px', top: (groundY - 14) + 'px' }
+    ], { duration: 2400, easing: 'cubic-bezier(0.2, 0.6, 0.3, 1)', fill: 'forwards' });
+
+    rollIn.onfinish = () => {
+      // 2) "Look around" pause — 1.4s. Slight back-and-forth wobble.
+      const lookAround = ball.animate([
+        { left: (approachX - 14) + 'px', top: (groundY - 14) + 'px' },
+        { left: (approachX - 10) + 'px', top: (groundY - 14) + 'px' },
+        { left: (approachX - 14) + 'px', top: (groundY - 14) + 'px' },
+        { left: (approachX - 12) + 'px', top: (groundY - 14) + 'px' }
+      ], { duration: 1400, easing: 'ease-in-out', fill: 'forwards' });
+
+      lookAround.onfinish = () => {
+        // 3) Tiptoe forward to the hole edge (0.5s)
+        const tiptoe = ball.animate([
+          { left: (approachX - 12) + 'px', top: (groundY - 14) + 'px' },
+          { left: (wobbleX - 14) + 'px',  top: (groundY - 14) + 'px' }
+        ], { duration: 500, easing: 'ease-in', fill: 'forwards' });
+
+        tiptoe.onfinish = () => {
+          // 4) Drop: scale down + translate into hole (0.45s)
+          const drop = ball.animate([
+            { left: (wobbleX - 14) + 'px', top: (groundY - 14) + 'px',
+              transform: 'scale(1)', opacity: 1 },
+            { left: (finalX - 8) + 'px',  top: (holeY - 8) + 'px',
+              transform: 'scale(0.45)', opacity: 0.8 },
+            { left: (finalX - 4) + 'px',  top: (holeY + 4) + 'px',
+              transform: 'scale(0.2)',  opacity: 0 }
+          ], { duration: 450, easing: 'cubic-bezier(0.5, 0, 0.7, 0.2)', fill: 'forwards' });
+
+          // 5) PLOP! bubble pops above the hole right when the ball disappears
+          setTimeout(() => {
+            if (plop) {
+              plop.style.left = (holeX + 8) + 'px';
+              plop.style.top  = (holeY - 80) + 'px';
+              plop.classList.add('show');
+            }
+          }, 280);
+
+          drop.onfinish = () => {
+            ball.classList.remove('active');
+            ball.style.left = '-100px'; ball.style.top = '-100px';
+            // Hide PLOP and the hole after a beat
+            setTimeout(() => { if (plop) plop.classList.remove('show'); }, 1200);
+            setTimeout(() => {
+              if (hole) { hole.classList.remove('show'); hole.classList.remove('shake'); }
+              inFlight = false;
+            }, 1700);
+          };
+        };
+      };
+    };
+  }
+
   function fly() {
     if (inFlight) return;
     if (document.hidden) return;
     inFlight = true;
+    flightCount++;
+    if (flightCount % 3 === 0) { sneakFly(); return; }
     const vw = window.innerWidth, vh = window.innerHeight;
     const ltr = Math.random() < 0.5;
     // Ground level somewhere in lower viewport
@@ -3060,61 +2953,35 @@ document.getElementById('btn-optimize-hot').onclick = () => {
   });
 })();
 
-// Skynet demon-robot locust: alternates with the golf ball (15s offset),
-// fires laser bolts on regular flights, and every 3rd flight slows to the
-// center of the screen with a "DON'T F**K THIS UP" speech bubble.
+// Angry honking goose — flies across with a "HONK!" speech bubble
+// halfway through. Offset 15s from the ball so they alternate.
 (function(){
-  const locust = document.getElementById('termLocust');
-  const bubble = document.getElementById('tlTauntBubble');
-  if (!locust) return;
+  const goose = document.getElementById('angryGoose');
+  const honk = document.getElementById('honkBubble');
+  if (!goose) return;
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  // Pre-allocate a small pool of laser bolts
-  const BOLT_POOL_SIZE = 6;
-  const bolts = [];
-  for (let i = 0; i < BOLT_POOL_SIZE; i++) {
-    const b = document.createElement('div');
-    b.className = 'tl-bolt';
-    document.body.appendChild(b);
-    bolts.push(b);
-  }
-  let boltIdx = 0;
-  function fireBolt(ltr) {
-    const r = locust.getBoundingClientRect();
-    if (r.width === 0) return;
-    const y = r.top + r.height * 0.45;
-    const x = ltr ? r.right - 8 : r.left + 8;
-    const endX = x + (ltr ? 240 : -240);
-    const b = bolts[boltIdx];
-    boltIdx = (boltIdx + 1) % BOLT_POOL_SIZE;
-    b.style.transform = ltr ? 'rotate(0deg)' : 'rotate(180deg)';
-    b.animate([
-      { left: x + 'px',     top: y + 'px', opacity: 1, offset: 0 },
-      { left: (x + (ltr?40:-40)) + 'px', top: y + 'px', opacity: 1, offset: 0.15 },
-      { left: endX + 'px',  top: y + 'px', opacity: 0, offset: 1 }
-    ], { duration: 600, easing: 'cubic-bezier(0.4, 0, 0.7, 0.3)', fill: 'forwards' });
-  }
 
   let inFlight = false;
   let intervalId = null;
-  let flightCount = 0;
 
-  // --- Regular flight (curved path + 3 laser bolts) ---
-  function regularFly() {
+  function fly() {
+    if (inFlight) return;
+    if (document.hidden) return;
+    inFlight = true;
     const vw = window.innerWidth, vh = window.innerHeight;
     const ltr = Math.random() < 0.5;
-    const startX = ltr ? -160 : vw + 160;
-    const endX   = ltr ? vw + 160 : -160;
-    const startY = (0.10 + Math.random() * 0.30) * vh;
-    const midY1  = (0.15 + Math.random() * 0.40) * vh;
-    const midY2  = (0.20 + Math.random() * 0.45) * vh;
-    const endY   = (0.10 + Math.random() * 0.40) * vh;
+    const startX = ltr ? -120 : vw + 120;
+    const endX   = ltr ? vw + 120 : -120;
+    const startY = (0.15 + Math.random() * 0.35) * vh;
+    const midY1  = (0.20 + Math.random() * 0.40) * vh;
+    const midY2  = (0.25 + Math.random() * 0.45) * vh;
+    const endY   = (0.15 + Math.random() * 0.40) * vh;
     const flipX = ltr ? 1 : -1;
-    const wobble = () => (Math.random() * 6 - 3);
-    const tilt = (Math.random() * 4 + 4) * (ltr ? 1 : -1);
-    const dur = 6500 + Math.random() * 4000;
+    const wobble = () => (Math.random() * 5 - 2.5);
+    const tilt = (Math.random() * 4 + 3) * (ltr ? 1 : -1);
+    const dur = 6000 + Math.random() * 3000;
 
-    const animation = locust.animate([
+    const animation = goose.animate([
       { left: startX + 'px', top: startY + 'px',
         transform: `scaleX(${flipX}) rotate(${wobble()}deg)`, offset: 0 },
       { left: (ltr ? vw*0.30 : vw*0.70) + 'px', top: midY1 + 'px',
@@ -3123,134 +2990,32 @@ document.getElementById('btn-optimize-hot').onclick = () => {
         transform: `scaleX(${flipX}) rotate(${-tilt + wobble()}deg)`, offset: 0.66 },
       { left: endX + 'px', top: endY + 'px',
         transform: `scaleX(${flipX}) rotate(${wobble()}deg)`, offset: 1 }
-    ], { duration: dur, easing: 'cubic-bezier(0.4, 0.05, 0.55, 0.95)', fill: 'forwards' });
-
-    locust.classList.add('active');
-    // Fire 3 bolts at scheduled offsets while in flight
-    [0.30, 0.50, 0.72].forEach(off => {
-      setTimeout(() => { if (inFlight) fireBolt(ltr); }, dur * off);
-    });
-    animation.onfinish = () => {
-      locust.classList.remove('active');
-      locust.style.left = '-200px';
-      locust.style.top = '-200px';
-      inFlight = false;
-    };
-  }
-
-  // --- Taunt flight: slow drift to center, hold + show bubble, then exit ---
-  function tauntFly() {
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const ltr = Math.random() < 0.5;
-    const startX = ltr ? -160 : vw + 160;
-    const midX = vw / 2 - 65;      // center the 130px locust
-    const midY = vh * 0.42 - 30;   // a bit above center
-    const endX   = ltr ? vw + 160 : -160;
-    const flipX = ltr ? 1 : -1;
-
-    locust.classList.add('active');
-    // Entrance: 4s, slow ease-out into the middle
-    const entry = locust.animate([
-      { left: startX + 'px', top: midY + 'px', transform: `scaleX(${flipX}) rotate(0deg)` },
-      { left: midX + 'px',   top: midY + 'px', transform: `scaleX(${flipX}) rotate(0deg)` }
-    ], { duration: 4000, easing: 'cubic-bezier(0.2, 0.6, 0.3, 1)', fill: 'forwards' });
-
-    entry.onfinish = () => {
-      // Show speech bubble next to the locust head
-      if (bubble) {
-        const bx = ltr ? midX - 200 : midX + 145;
-        bubble.style.left = Math.max(8, bx) + 'px';
-        bubble.style.top  = (midY - 50) + 'px';
-        bubble.classList.add('show');
-      }
-      // Hold for 3s, then exit
-      setTimeout(() => {
-        if (bubble) bubble.classList.remove('show');
-        const exit = locust.animate([
-          { left: midX + 'px', top: midY + 'px', transform: `scaleX(${flipX}) rotate(0deg)` },
-          { left: endX + 'px', top: (midY + (Math.random()*60-30)) + 'px',
-            transform: `scaleX(${flipX}) rotate(${ltr?-4:4}deg)` }
-        ], { duration: 2500, easing: 'cubic-bezier(0.4, 0, 0.7, 0.4)', fill: 'forwards' });
-        // Fire 2 parting laser bolts on exit
-        setTimeout(() => { if (inFlight) fireBolt(ltr); }, 200);
-        setTimeout(() => { if (inFlight) fireBolt(ltr); }, 800);
-        exit.onfinish = () => {
-          locust.classList.remove('active');
-          locust.style.left = '-200px';
-          locust.style.top = '-200px';
-          inFlight = false;
-        };
-      }, 3000);
-    };
-  }
-
-  function fly() {
-    if (inFlight) return;
-    if (document.hidden) return;
-    inFlight = true;
-    flightCount++;
-    // Every 3rd flight is the taunt
-    if (flightCount % 3 === 0) tauntFly();
-    else regularFly();
-  }
-
-  setTimeout(fly, 21000);
-  intervalId = setInterval(fly, 30000);
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { clearInterval(intervalId); intervalId = null; }
-    else if (!intervalId) { intervalId = setInterval(fly, 30000); }
-  });
-})();
-
-// Skynet drone interceptor — flies on its own cycle, offset between
-// the golf ball and the locust so something crosses every ~10s.
-(function(){
-  const ship = document.getElementById('skynetShip');
-  if (!ship) return;
-  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  let inFlight = false;
-  let intervalId = null;
-
-  function fly() {
-    if (inFlight) return;
-    if (document.hidden) return;
-    inFlight = true;
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const ltr = Math.random() < 0.5;
-    const startX = ltr ? -160 : vw + 160;
-    const endX   = ltr ? vw + 160 : -160;
-    const startY = (0.20 + Math.random() * 0.40) * vh;
-    const midY1  = (0.25 + Math.random() * 0.40) * vh;
-    const midY2  = (0.20 + Math.random() * 0.50) * vh;
-    const endY   = (0.20 + Math.random() * 0.45) * vh;
-    const flipX = ltr ? 1 : -1;
-    const wobble = () => (Math.random() * 4 - 2);
-    const tilt = (Math.random() * 3 + 3) * (ltr ? 1 : -1);
-    const dur = 5000 + Math.random() * 3000;
-
-    const animation = ship.animate([
-      { left: startX + 'px', top: startY + 'px',
-        transform: `scaleX(${flipX}) rotate(${wobble()}deg)`, offset: 0 },
-      { left: (ltr ? vw*0.30 : vw*0.70) + 'px', top: midY1 + 'px',
-        transform: `scaleX(${flipX}) rotate(${tilt + wobble()}deg)`, offset: 0.4 },
-      { left: (ltr ? vw*0.65 : vw*0.35) + 'px', top: midY2 + 'px',
-        transform: `scaleX(${flipX}) rotate(${-tilt + wobble()}deg)`, offset: 0.7 },
-      { left: endX + 'px', top: endY + 'px',
-        transform: `scaleX(${flipX}) rotate(${wobble()}deg)`, offset: 1 }
     ], { duration: dur, easing: 'cubic-bezier(0.4, 0.1, 0.5, 0.9)', fill: 'forwards' });
 
-    ship.classList.add('active');
+    goose.classList.add('active');
+
+    // Pop the HONK bubble at ~35% into the flight, hold 1.2s, then hide
+    if (honk) {
+      setTimeout(() => {
+        if (!inFlight) return;
+        const r = goose.getBoundingClientRect();
+        honk.style.left = (ltr ? r.right - 10 : r.left - 80) + 'px';
+        honk.style.top  = (r.top - 30) + 'px';
+        honk.classList.add('show');
+      }, dur * 0.30);
+      setTimeout(() => { honk.classList.remove('show'); }, dur * 0.30 + 1500);
+    }
+
     animation.onfinish = () => {
-      ship.classList.remove('active');
-      ship.style.left = '-200px';
-      ship.style.top = '-200px';
+      goose.classList.remove('active');
+      goose.style.left = '-200px';
+      goose.style.top = '-200px';
+      if (honk) honk.classList.remove('show');
       inFlight = false;
     };
   }
 
-  // Offset 11s after page load — sits between ball (6s) and locust (21s)
-  setTimeout(fly, 11000);
+  setTimeout(fly, 18000);
   intervalId = setInterval(fly, 30000);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { clearInterval(intervalId); intervalId = null; }
