@@ -514,9 +514,13 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
   position:absolute;
   white-space:nowrap;
   top:50%;
+  left:0;
   transform:translate3d(0, -50%, 0);
-  animation:tt-scroll var(--tt-dur, 240s) linear infinite;
+  -webkit-transform:translate3d(0, -50%, 0);
   padding-left:32px;
+  will-change:transform;
+  /* Scroll is driven by JS rAF in pixels — more reliable than CSS
+     animation on iOS Safari for very wide elements. */
 }
 .tt-section{
   display:inline-block;
@@ -534,12 +538,8 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
 .tt-item .tt-time{color:#ffe680;font-weight:700;margin-right:8px}
 .tt-item .tt-players{color:#f6f1e7}
 .tt-sep{margin:0 14px;color:#6b6354;font-weight:900}
-@keyframes tt-scroll{
-  from{transform:translate3d(0, -50%, 0)}
-  to  {transform:translate3d(-50%, -50%, 0)}
-}
 @media(prefers-reduced-motion:reduce){
-  .tt-content{animation:none;padding-left:14px}
+  .tt-content{padding-left:14px}
 }
 
 /* Floating Lineup Builder */
@@ -688,7 +688,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 12:53 UTC<br>
+      Wednesday, May 13, 2026 &middot; 13:10 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1314,7 +1314,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 12:53 UTC &middot; LIV cut-rate caveat added to Lock In &middot; tape = odds + tee times &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 13:10 UTC &middot; tape now rAF-driven (iOS fix) &middot; tape = odds + tee times &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
 </footer>
 
 <script>
@@ -2673,17 +2673,62 @@ document.getElementById('btn-optimize-hot').onclick = () => {
       html += '<span class="tt-item"><span class="tt-time">' + time + '</span><span class="tt-players">' + players + '</span></span>' + sep;
     }
   }
-  // Double the content so the keyframe (-50% translate) seamlessly loops
+  // Double the content so we can loop seamlessly by translating one copy width
   wire.innerHTML = html + html;
 
-  // Scroll duration = content_width / target_speed_px_per_sec
-  const setDur = () => {
-    const targetSpeed = 90; // px/sec — slow enough to read tee times comfortably
-    const w = wire.scrollWidth / 2;
-    if (w > 0) wire.style.setProperty('--tt-dur', (w / targetSpeed) + 's');
-  };
-  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(setDur);
-  else setTimeout(setDur, 32);
+  // rAF-driven pixel-perfect scroll — far more reliable on iOS Safari
+  // than CSS animation with a custom-property duration on a very wide element.
+  const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    return;
+  }
+  const SPEED = 90; // px/sec
+  let pos = 0;
+  let halfPx = 0;
+  let lastTime = 0;
+  let rafId = null;
+  function measure() {
+    // scrollWidth includes the padding-left, so subtract it once for the half
+    halfPx = (wire.scrollWidth - 32) / 2;
+  }
+  function step(now) {
+    if (!halfPx) measure();
+    if (halfPx > 0) {
+      if (lastTime) {
+        const dt = (now - lastTime) / 1000;
+        pos -= SPEED * dt;
+        if (pos <= -halfPx) pos += halfPx;
+      }
+      // Use translate3d to force GPU compositing on iOS
+      const t = 'translate3d(' + pos.toFixed(2) + 'px, -50%, 0)';
+      wire.style.transform = t;
+      wire.style.webkitTransform = t;
+    }
+    lastTime = now;
+    rafId = requestAnimationFrame(step);
+  }
+  // Kick off after a tick so layout has settled (iOS sometimes returns
+  // 0 for scrollWidth on the first paint).
+  setTimeout(() => {
+    measure();
+    if (typeof requestAnimationFrame === 'function') {
+      rafId = requestAnimationFrame(step);
+    }
+  }, 80);
+  // Re-measure on resize / orientation change
+  window.addEventListener('resize', () => { measure(); }, { passive: true });
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', () => { measure(); }, { passive: true });
+  }
+  // Pause when the tab is backgrounded (rAF already throttles, but be explicit)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      lastTime = 0;
+    } else if (!rafId) {
+      rafId = requestAnimationFrame(step);
+    }
+  });
 })();
 
 
