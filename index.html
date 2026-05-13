@@ -544,7 +544,7 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
 
 /* Floating Lineup Builder */
 .float-builder{
-  position:fixed;right:18px;bottom:48px;width:320px;
+  position:fixed;right:18px;bottom:40px;width:320px;
   max-height:min(80vh, 640px);
   background:var(--paper-2);border:1px solid var(--rule);
   border-radius:4px;box-shadow:0 10px 36px rgba(26,24,20,0.18),0 2px 6px rgba(26,24,20,0.08);
@@ -552,6 +552,11 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
   transition:max-height 0.22s ease, transform 0.22s ease;
 }
 .float-builder.collapsed{max-height:48px;overflow:hidden}
+/* Hover-to-expand on mouse devices — touch devices keep the click toggle */
+@media (hover: hover) and (pointer: fine){
+  .float-builder.collapsed:hover{max-height:min(80vh,640px)}
+  .float-builder.collapsed:hover .fb-caret{transform:rotate(180deg)}
+}
 .fb-toggle{
   display:flex;align-items:center;justify-content:space-between;
   width:100%;background:var(--ink);color:var(--paper);
@@ -566,7 +571,7 @@ table.players tr.in-lineup td{background:rgba(212,169,58,0.18)}
 .float-builder.collapsed .fb-caret{transform:rotate(180deg)}
 .fb-body{padding:14px;overflow-y:auto;flex:1}
 @media(max-width:640px){
-  .float-builder{left:12px;right:12px;width:auto;bottom:44px;max-height:min(70vh,540px)}
+  .float-builder{left:12px;right:12px;width:auto;bottom:40px;max-height:min(70vh,540px)}
 }
 footer{
   border-top:3px double var(--ink);padding:24px;text-align:center;
@@ -683,7 +688,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 12:28 UTC<br>
+      Wednesday, May 13, 2026 &middot; 12:46 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1307,7 +1312,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 12:28 UTC &middot; tee-time tape live &middot; odds refreshed 7:20 AM CT &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 12:46 UTC &middot; tape = outright odds + tee times &middot; builder hover-to-expand &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
 </footer>
 
 <script>
@@ -2641,6 +2646,25 @@ document.getElementById('btn-optimize-hot').onclick = () => {
 
   const sep = '<span class="tt-sep">●</span>';
   let html = '';
+
+  // --- Outright odds section (top ~40 by market, sourced from PLAYERS) ---
+  if (Array.isArray(PLAYERS)) {
+    const oddsBoard = PLAYERS
+      .filter(p => p.odds != null && p.odds > 0 && p.odds < 35000 && p.tag !== 'OUT')
+      .sort((a, b) => a.odds - b.odds)
+      .slice(0, 40);
+    if (oddsBoard.length) {
+      html += '<span class="tt-section">▶ Outright Odds (Wed AM)</span>';
+      oddsBoard.forEach(p => {
+        const parts = p.name.split(' ');
+        const last = parts.length > 1 ? parts[parts.length - 1] : p.name;
+        const oddsStr = '+' + p.odds.toLocaleString();
+        html += '<span class="tt-item"><span class="tt-time">' + oddsStr + '</span><span class="tt-players">' + last + '</span></span>' + sep;
+      });
+    }
+  }
+
+  // --- Tee times sections (R1/R2 × Tee 1/Tee 10) ---
   for (const [name, groups] of SECTIONS) {
     html += '<span class="tt-section">▶ ' + name + '</span>';
     for (const [time, players] of groups) {
