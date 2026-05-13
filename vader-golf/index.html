@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0805">
+<title>Vader Force-Golf · Aronimink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:
+    radial-gradient(circle at 25% 30%, rgba(157,41,51,0.18) 0%, transparent 35%),
+    radial-gradient(circle at 75% 70%, rgba(40,40,60,0.4) 0%, transparent 45%),
+    linear-gradient(180deg, #0a0805 0%, #14101a 100%);
+  color:#f6f1e7;
+  font-family:'Fraunces', Georgia, serif;
+  position:relative;
+  -webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+          env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+/* Starfield */
+.stars{
+  position:fixed;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 27% 38%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 45% 8%,  #fff, transparent),
+    radial-gradient(1px 1px at 62% 22%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 78% 35%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 12%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 8%  56%, #fff, transparent),
+    radial-gradient(1px 1px at 35% 78%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 55% 88%, #fff, transparent),
+    radial-gradient(1px 1px at 71% 65%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 92% 78%, #fff, transparent),
+    radial-gradient(2px 2px at 18% 42%, #ffd060, transparent),
+    radial-gradient(2px 2px at 82% 60%, #ff5040, transparent);
+  background-size:100% 100%;
+  opacity:0.85;
+  animation:starshift 60s linear infinite;
+}
+@keyframes starshift{
+  from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0}
+  to  {background-position:-40px 0,-30px 0,-50px 0,-20px 0,-45px 0,-35px 0,-25px 0,-55px 0,-30px 0,-40px 0,-50px 0,-15px 0,-20px 0}
+}
+
+/* Title bar */
+.bar{
+  position:fixed;top:0;left:0;right:0;
+  padding:14px 22px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(212,169,58,0.18);
+  background:linear-gradient(180deg, rgba(10,8,5,0.85), rgba(10,8,5,0.4));
+  backdrop-filter:blur(6px);
+  z-index:5;
+}
+.bar .kicker{
+  font-family:'JetBrains Mono', monospace;font-size:10px;
+  letter-spacing:0.18em;text-transform:uppercase;
+  color:#9d2933;font-weight:700;
+}
+.bar .kicker::before{content:'— ';color:#9d2933}
+.bar h1{
+  font-family:'Fraunces', serif;font-size:14px;font-weight:800;
+  letter-spacing:0.02em;color:#f6f1e7;line-height:1;margin-top:3px;
+}
+.bar .back{
+  font-family:'JetBrains Mono', monospace;font-size:10px;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:#d4a93a;text-decoration:none;
+  padding:6px 10px;border:1px solid rgba(212,169,58,0.4);
+  border-radius:2px;font-weight:700;
+  transition:background 0.15s ease, color 0.15s ease;
+}
+.bar .back:hover{background:#d4a93a;color:#0a0805}
+
+/* Caption bar */
+.caption{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono', monospace;font-size:10px;
+  letter-spacing:0.18em;text-transform:uppercase;
+  color:rgba(246,241,231,0.45);
+  text-align:center;
+  z-index:5;
+}
+.caption span{color:#d4a93a}
+
+/* Vader */
+.vader{
+  position:fixed;
+  bottom:18%;
+  left:-180px;
+  width:140px;height:230px;
+  pointer-events:none;
+  z-index:9999;
+  opacity:0;
+  will-change:transform,left,opacity;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,0.7)) drop-shadow(0 0 12px rgba(157,41,51,0.4));
+}
+.vader.active{opacity:1}
+.vader .v-cape{transform-origin:70px 65px;animation:v-cape 1.8s ease-in-out infinite alternate}
+.vader .v-eye{animation:v-eye-pulse 1.4s ease-in-out infinite alternate}
+.vader .v-arm{transform-origin:78px 80px}
+.vader.charging .v-arm{animation:v-arm-charge 0.7s ease-in-out infinite alternate}
+@keyframes v-cape{
+  from{transform:skewX(-1deg) scaleY(1)}
+  to  {transform:skewX(3deg)  scaleY(1.05)}
+}
+@keyframes v-eye-pulse{
+  from{opacity:0.65;filter:brightness(0.9)}
+  to  {opacity:1;   filter:brightness(1.6)}
+}
+@keyframes v-arm-charge{
+  from{transform:rotate(0deg)}
+  to  {transform:rotate(-4deg)}
+}
+
+/* Force-pushed ball */
+.force-ball{
+  position:fixed;
+  width:30px;height:30px;
+  pointer-events:none;
+  z-index:9999;
+  top:-100px;left:-100px;
+  opacity:0;
+  will-change:transform,top,left,opacity;
+}
+.force-ball.active{opacity:1}
+.force-ball .fb-inner{
+  width:100%;height:100%;
+  animation:fb-spin 0.35s linear infinite;
+}
+.force-ball.charging .fb-aura{
+  opacity:1;animation:fb-aura-pulse 0.4s ease-in-out infinite alternate;
+}
+.force-ball .fb-aura{
+  position:absolute;inset:-12px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,80,40,0.7), rgba(157,41,51,0.4) 50%, rgba(157,41,51,0));
+  opacity:0;pointer-events:none;
+  filter:blur(2px);
+}
+@keyframes fb-spin{from{transform:rotate(0)} to{transform:rotate(360deg)}}
+@keyframes fb-aura-pulse{
+  from{transform:scale(0.9);opacity:0.7}
+  to  {transform:scale(1.3);opacity:1}
+}
+
+/* Force trail dots */
+.force-trail-dot{
+  position:fixed;
+  width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,60,40,0.9), rgba(157,41,51,0));
+  pointer-events:none;z-index:9998;
+  opacity:0;left:-100px;top:-100px;
+  will-change:transform,top,left,opacity;
+  filter:blur(0.5px);
+}
+
+/* Force lightning */
+.force-bolt{
+  position:fixed;
+  height:2px;
+  pointer-events:none;
+  z-index:9998;
+  opacity:0;left:-200px;top:-200px;
+  background:linear-gradient(90deg, rgba(255,200,80,0), #ffd060, #ff3030, rgba(255,30,30,0.2));
+  box-shadow:0 0 6px rgba(255,30,30,0.85), 0 0 14px rgba(255,80,40,0.6);
+  transform-origin:left center;
+  will-change:transform,top,left,opacity;
+}
+.force-bolt.active{
+  opacity:1;
+  animation:fb-flicker 0.08s steps(2) infinite alternate;
+}
+@keyframes fb-flicker{
+  from{opacity:0.55;filter:brightness(0.85)}
+  to  {opacity:1;   filter:brightness(1.4)}
+}
+
+/* Ground line */
+.ground{
+  position:fixed;bottom:18%;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(212,169,58,0.25), transparent);
+  z-index:1;
+}
+
+/* Subtle PGA marker on horizon */
+.horizon{
+  position:fixed;
+  bottom:20%;right:8%;
+  font-family:'JetBrains Mono', monospace;
+  font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:rgba(212,169,58,0.35);
+  z-index:1;
+}
+.horizon::before{
+  content:'';display:inline-block;width:24px;height:1px;
+  background:rgba(212,169,58,0.35);margin-right:8px;vertical-align:middle;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .stars{animation:none}
+  .vader, .force-ball, .force-trail-dot, .force-bolt{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="ground"></div>
+<div class="horizon">Aronimink · 7,394 yd</div>
+
+<header class="bar">
+  <div>
+    <div class="kicker">PGA Insights by KB</div>
+    <h1>Vader Force-Golf</h1>
+  </div>
+  <a class="back" href="../">← Back</a>
+</header>
+
+<div class="caption">A long time ago, on a fairway far, far away &middot; <span>loops every ~7s</span></div>
+
+<!-- Darth Vader silhouette -->
+<svg class="vader" id="vaderFig" viewBox="0 0 140 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="v-helmet" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#2a251e"/>
+      <stop offset="40%" stop-color="#0a0805"/>
+      <stop offset="100%" stop-color="#1a1814"/>
+    </linearGradient>
+    <radialGradient id="v-eye" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#ffe0a0"/>
+      <stop offset="35%" stop-color="#ff5040"/>
+      <stop offset="100%" stop-color="#5a0000"/>
+    </radialGradient>
+    <filter id="v-eyeglow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Cape -->
+  <g class="v-cape">
+    <path d="M 38 65 Q 6 120 22 230 L 118 230 Q 134 120 102 65 Z" fill="#0a0805" stroke="#1a1814" stroke-width="0.5"/>
+    <path d="M 70 65 L 68 230 L 72 230 Z" fill="#1a1814" opacity="0.55"/>
+  </g>
+  <!-- Torso -->
+  <path d="M 48 76 L 92 76 L 96 165 L 44 165 Z" fill="#1a1814" stroke="#3a352b" stroke-width="0.4"/>
+  <!-- Chest panel -->
+  <rect x="56" y="100" width="28" height="18" fill="#2a251e" stroke="#3a352b" stroke-width="0.4"/>
+  <g>
+    <rect x="58" y="102" width="3" height="3" fill="#ff1a1a"/>
+    <rect x="63" y="102" width="3" height="3" fill="#d4a93a"/>
+    <rect x="68" y="102" width="3" height="3" fill="#ff1a1a"/>
+    <rect x="73" y="102" width="3" height="3" fill="#3a8a3a"/>
+    <rect x="58" y="108" width="24" height="1.5" fill="#d4a93a"/>
+    <rect x="58" y="112" width="3" height="3" fill="#d4a93a"/>
+    <rect x="63" y="112" width="3" height="3" fill="#ff1a1a"/>
+  </g>
+  <!-- Belt -->
+  <rect x="44" y="156" width="52" height="8" fill="#0a0805" stroke="#3a352b" stroke-width="0.4"/>
+  <rect x="64" y="156" width="12" height="8" fill="#d4a93a" opacity="0.5"/>
+  <!-- Helmet -->
+  <path d="M 44 30 Q 70 6 96 30 L 98 60 L 42 60 Z" fill="url(#v-helmet)" stroke="#2a251e" stroke-width="0.6"/>
+  <path d="M 42 34 Q 70 24 98 34" stroke="#2a251e" stroke-width="0.9" fill="none"/>
+  <path d="M 44 30 L 36 42 L 36 60 L 42 60 Z" fill="#0a0805"/>
+  <path d="M 96 30 L 104 42 L 104 60 L 98 60 Z" fill="#0a0805"/>
+  <!-- Eye sockets + glowing slits -->
+  <path d="M 50 38 L 64 40 L 63 46 L 50 44 Z" fill="#0a0805"/>
+  <path d="M 76 40 L 90 38 L 90 44 L 77 46 Z" fill="#0a0805"/>
+  <g filter="url(#v-eyeglow)">
+    <ellipse cx="57" cy="42" rx="4.5" ry="1.6" fill="url(#v-eye)" class="v-eye"/>
+    <ellipse cx="83" cy="42" rx="4.5" ry="1.6" fill="url(#v-eye)" class="v-eye"/>
+  </g>
+  <!-- Mouth grille -->
+  <rect x="54" y="50" width="32" height="7" fill="#0a0805" stroke="#2a251e" stroke-width="0.3"/>
+  <line x1="62" y1="50" x2="62" y2="57" stroke="#3a352b" stroke-width="0.4"/>
+  <line x1="70" y1="50" x2="70" y2="57" stroke="#3a352b" stroke-width="0.4"/>
+  <line x1="78" y1="50" x2="78" y2="57" stroke="#3a352b" stroke-width="0.4"/>
+  <path d="M 54 57 L 86 57 L 82 64 L 58 64 Z" fill="#0a0805"/>
+  <!-- Extended arm -->
+  <g class="v-arm">
+    <path d="M 92 85 Q 110 88 134 96" stroke="#0a0805" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <circle cx="134" cy="96" r="10" fill="#0a0805" stroke="#1a1814" stroke-width="0.4"/>
+    <path d="M 139 92 Q 144 91 147 92" stroke="#0a0805" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M 140 96 Q 146 96 150 96" stroke="#0a0805" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M 140 100 Q 146 100 149 101" stroke="#0a0805" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
+
+<!-- Force-pushed golf ball -->
+<div class="force-ball" id="forceBall" aria-hidden="true">
+  <div class="fb-aura"></div>
+  <svg class="fb-inner" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="fb-shade" cx="35%" cy="35%" r="65%">
+        <stop offset="0%"  stop-color="#ffffff"/>
+        <stop offset="55%" stop-color="#f4efe5"/>
+        <stop offset="100%" stop-color="#c9bca1"/>
+      </radialGradient>
+    </defs>
+    <circle cx="15" cy="15" r="14" fill="url(#fb-shade)" stroke="#9d2933" stroke-width="0.4"/>
+    <g fill="#a89878" opacity="0.5">
+      <circle cx="10" cy="7"  r="1"/><circle cx="15" cy="5"  r="1"/><circle cx="20" cy="7"  r="1"/>
+      <circle cx="7"  cy="12" r="1"/><circle cx="13" cy="10" r="1"/><circle cx="18" cy="10" r="1"/>
+      <circle cx="23" cy="13" r="1"/><circle cx="10" cy="17" r="1"/><circle cx="15" cy="16" r="1"/>
+      <circle cx="20" cy="17" r="1"/><circle cx="7"  cy="22" r="1"/><circle cx="13" cy="22" r="1"/>
+      <circle cx="20" cy="22" r="1"/><circle cx="13" cy="26" r="1"/><circle cx="18" cy="25" r="1"/>
+    </g>
+  </svg>
+</div>
+
+<script>
+// Standalone Vader Force-golf scene. Loops every ~7s so the page is
+// always doing something. Same choreography as the main-page version
+// was but compressed: slide-in → ball materialize → charge with
+// lightning → launch with red trail → slide-out.
+(function(){
+  const vader = document.getElementById('vaderFig');
+  const ball  = document.getElementById('forceBall');
+  if (!vader || !ball) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+
+  const TRAIL_LEN = 18;
+  const trail = [];
+  for (let i = 0; i < TRAIL_LEN; i++) {
+    const d = document.createElement('div');
+    d.className = 'force-trail-dot';
+    document.body.appendChild(d);
+    trail.push({el: d, age: Infinity});
+  }
+  const BOLT_COUNT = 4;
+  const bolts = [];
+  for (let i = 0; i < BOLT_COUNT; i++) {
+    const b = document.createElement('div');
+    b.className = 'force-bolt';
+    document.body.appendChild(b);
+    bolts.push(b);
+  }
+
+  let inFlight = false;
+  let intervalId = null;
+
+  function fly() {
+    if (inFlight || document.hidden) return;
+    inFlight = true;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const vaderX = Math.max(20, vw * 0.08);
+    const vaderY = vh * 0.62;
+    const handX  = vaderX + 134;
+    const handY  = vaderY + 96;
+    const teeX   = vaderX + 170;
+    const teeY   = vaderY + 130;
+    const peakY  = vh * 0.20;
+    const endX   = vw + 80;
+
+    // 1) Slide in
+    vader.style.left = (vaderX - 220) + 'px';
+    vader.style.bottom = '18%';
+    vader.classList.add('active');
+    const slideIn = vader.animate([
+      { left: (vaderX - 220) + 'px', opacity: 0 },
+      { left: vaderX + 'px',         opacity: 1 }
+    ], { duration: 700, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)', fill: 'forwards' });
+
+    slideIn.onfinish = () => {
+      // 2) Ball materializes
+      ball.style.left = (teeX - 15) + 'px';
+      ball.style.top  = (teeY - 15) + 'px';
+      ball.classList.add('active');
+      ball.animate([
+        { transform: 'scale(0)', opacity: 0 },
+        { transform: 'scale(1.15)', opacity: 1, offset: 0.7 },
+        { transform: 'scale(1)', opacity: 1 }
+      ], { duration: 320, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', fill: 'forwards' });
+
+      // 3) Charge
+      setTimeout(() => {
+        ball.classList.add('charging');
+        vader.classList.add('charging');
+        ball.animate([
+          { left: (teeX - 15) + 'px', top: (teeY - 15) + 'px' },
+          { left: (teeX - 28) + 'px', top: (teeY - 65) + 'px' }
+        ], { duration: 1000, easing: 'ease-in-out', fill: 'forwards' });
+        bolts.forEach((b, i) => {
+          const len = 65 + Math.random() * 30;
+          b.style.width = len + 'px';
+          b.style.left = handX + 'px';
+          b.style.top  = (handY + i * 2 - 3) + 'px';
+          const angle = -30 + (i * 7) + (Math.random() * 4 - 2);
+          b.style.transform = 'rotate(' + angle + 'deg)';
+          b.classList.add('active');
+        });
+      }, 350);
+
+      // 4) Launch
+      setTimeout(() => {
+        ball.classList.remove('charging');
+        vader.classList.remove('charging');
+        bolts.forEach(b => b.classList.remove('active'));
+
+        const dur = 1900;
+        const startX = teeX - 28, startY = teeY - 65;
+        const t0 = performance.now();
+        let lastTrail = 0;
+        let trailIdx = 0;
+
+        function step(now) {
+          const elapsed = now - t0;
+          const t = Math.min(1, elapsed / dur);
+          const x = startX + (endX - startX) * t;
+          const y = startY + ((peakY - startY) * (-4 * t * t + 4 * t));
+          ball.style.left = (x - 15) + 'px';
+          ball.style.top  = (y - 15) + 'px';
+          if (now - lastTrail > 28 && t < 0.97) {
+            const td = trail[trailIdx];
+            td.age = 0;
+            td.el.style.left = (x - 6) + 'px';
+            td.el.style.top  = (y - 6) + 'px';
+            td.el.style.opacity = '0.9';
+            trailIdx = (trailIdx + 1) % TRAIL_LEN;
+            lastTrail = now;
+          }
+          for (const td of trail) {
+            if (td.age === Infinity) continue;
+            td.age += 16;
+            const k = 1 - td.age / 750;
+            if (k <= 0) { td.el.style.opacity = '0'; td.age = Infinity; }
+            else td.el.style.opacity = String(k * 0.9);
+          }
+          if (t < 1) requestAnimationFrame(step);
+          else {
+            ball.classList.remove('active');
+            ball.style.left = '-100px'; ball.style.top = '-100px';
+            const tailInt = setInterval(() => {
+              let still = false;
+              for (const td of trail) {
+                if (td.age === Infinity) continue;
+                td.age += 16;
+                const k = 1 - td.age / 750;
+                if (k <= 0) { td.el.style.opacity = '0'; td.age = Infinity; }
+                else { td.el.style.opacity = String(k * 0.9); still = true; }
+              }
+              if (!still) clearInterval(tailInt);
+            }, 16);
+            const slideOut = vader.animate([
+              { left: vaderX + 'px',         opacity: 1 },
+              { left: (vaderX - 220) + 'px', opacity: 0 }
+            ], { duration: 800, easing: 'cubic-bezier(0.5, 0, 0.7, 0.3)', fill: 'forwards' });
+            slideOut.onfinish = () => {
+              vader.classList.remove('active');
+              vader.style.left = '-220px';
+              inFlight = false;
+            };
+          }
+        }
+        requestAnimationFrame(step);
+      }, 350 + 1100);
+    };
+  }
+
+  // First flight 1.2s after page load, then every 7s
+  setTimeout(fly, 1200);
+  intervalId = setInterval(fly, 7000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { clearInterval(intervalId); intervalId = null; }
+    else if (!intervalId) { intervalId = setInterval(fly, 7000); }
+  });
+})();
+</script>
+</body>
+</html>
