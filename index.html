@@ -695,7 +695,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
     </div>
     <div class="dateline">
       <strong><span class="pulse"></span>Build Phase 2</strong>
-      Wednesday, May 13, 2026 &middot; 13:20 UTC<br>
+      Wednesday, May 13, 2026 &middot; 13:31 UTC<br>
       DK salaries · 156 players
     </div>
   </div>
@@ -1321,7 +1321,7 @@ table.players tr.hot td{background:rgba(74,122,62,0.10)}
 </aside>
 
 <footer>
-  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 13:20 UTC &middot; iOS tape fix: tt-copy + getBoundingClientRect &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
+  PGA Insights by KB &middot; Phase 2 &middot; Last updated 5/13/2026 13:31 UTC &middot; iOS tape v3: injected keyframes with px values &middot; <a href="vader-golf/" style="color:#9d2933;text-decoration:none;letter-spacing:0.1em">⚔ Vader Force-Golf →</a>
 </footer>
 
 <script>
@@ -2680,72 +2680,75 @@ document.getElementById('btn-optimize-hot').onclick = () => {
       html += '<span class="tt-item"><span class="tt-time">' + time + '</span><span class="tt-players">' + players + '</span></span>' + sep;
     }
   }
-  // Wrap each copy in an inline-block child with explicit max-content width.
-  // iOS WebKit can mis-measure scrollWidth of an absolute element inside a flex
-  // parent; measuring a sized child via getBoundingClientRect is more reliable.
+  // Wrap each copy in an inline-block child. iOS WebKit can mis-measure
+  // scrollWidth on an absolute child of a flex parent.
   wire.innerHTML =
     '<span class="tt-copy">' + html + '</span>' +
     '<span class="tt-copy">' + html + '</span>';
 
   const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduceMotion) {
-    return;
+  if (reduceMotion) return;
+
+  // Approach: inject a CSS @keyframes with the EXACT pixel translation
+  // distance for one copy width, plus the animation rule. This avoids:
+  //   - var() inside `animation:` shorthand (Safari bug)
+  //   - percentage transforms on a very wide element (iOS layer limit)
+  //   - rAF dependency (some iOS browsers throttle aggressively)
+  // We retry measurement until we get a non-zero width, then inject.
+  const SPEED = 90; // px/sec target
+  let injectedStyle = null;
+  let attempts = 0;
+
+  function buildAnimation(copyPx) {
+    const dur = (copyPx / SPEED).toFixed(2);
+    const css =
+      '@keyframes tt-scroll-rt {' +
+        'from{transform:translate3d(0,-50%,0);-webkit-transform:translate3d(0,-50%,0);}' +
+        'to{transform:translate3d(-' + copyPx + 'px,-50%,0);-webkit-transform:translate3d(-' + copyPx + 'px,-50%,0);}' +
+      '}' +
+      '@-webkit-keyframes tt-scroll-rt {' +
+        'from{-webkit-transform:translate3d(0,-50%,0);}' +
+        'to{-webkit-transform:translate3d(-' + copyPx + 'px,-50%,0);}' +
+      '}' +
+      '.tt-content{' +
+        'animation:tt-scroll-rt ' + dur + 's linear infinite !important;' +
+        '-webkit-animation:tt-scroll-rt ' + dur + 's linear infinite !important;' +
+      '}';
+    if (injectedStyle) injectedStyle.remove();
+    injectedStyle = document.createElement('style');
+    injectedStyle.setAttribute('data-tt', '1');
+    injectedStyle.textContent = css;
+    document.head.appendChild(injectedStyle);
   }
-  const SPEED = 90; // px/sec
-  let pos = 0;
-  let copyPx = 0;
-  let lastTime = 0;
-  let rafId = null;
-  function measure() {
-    const firstCopy = wire.querySelector('.tt-copy');
-    if (!firstCopy) return;
-    // getBoundingClientRect is more reliable than scrollWidth in iOS WebKit
-    const r = firstCopy.getBoundingClientRect();
-    if (r.width > 0) copyPx = r.width;
-  }
-  function step(now) {
-    if (copyPx <= 0) measure();
-    if (copyPx > 0) {
-      if (lastTime) {
-        const dt = (now - lastTime) / 1000;
-        pos -= SPEED * dt;
-        if (pos <= -copyPx) pos += copyPx;
-      }
-      // Both transform and -webkit-transform; use translate3d for GPU layer.
-      const t = 'translate3d(' + pos.toFixed(2) + 'px, -50%, 0)';
-      wire.style.transform = t;
-      wire.style.webkitTransform = t;
-    }
-    lastTime = now;
-    rafId = requestAnimationFrame(step);
-  }
-  // Defer measure + start until layout has settled. Some iOS browsers
-  // return 0 widths on the first paint, so retry until we get something.
-  let measureAttempts = 0;
+
   function tryStart() {
-    measure();
-    measureAttempts++;
-    if (copyPx > 0 || measureAttempts >= 20) {
-      if (typeof requestAnimationFrame === 'function') {
-        rafId = requestAnimationFrame(step);
-      }
-    } else {
-      setTimeout(tryStart, 100);
+    attempts++;
+    const firstCopy = wire.querySelector('.tt-copy');
+    let copyPx = 0;
+    if (firstCopy) {
+      const r = firstCopy.getBoundingClientRect();
+      copyPx = r.width;
+    }
+    if (copyPx > 0) {
+      buildAnimation(copyPx);
+    } else if (attempts < 25) {
+      setTimeout(tryStart, 120);
     }
   }
-  setTimeout(tryStart, 50);
-  window.addEventListener('resize', measure, { passive: true });
+  // Defer first measurement so layout has settled
+  if (document.readyState === 'complete') setTimeout(tryStart, 60);
+  else window.addEventListener('load', () => setTimeout(tryStart, 60), { once: true });
+
+  // Re-measure + rebuild on resize (debounced)
+  let resizeT = null;
+  function onResize() {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => { attempts = 0; tryStart(); }, 250);
+  }
+  window.addEventListener('resize', onResize, { passive: true });
   if (window.visualViewport) {
-    visualViewport.addEventListener('resize', measure, { passive: true });
+    visualViewport.addEventListener('resize', onResize, { passive: true });
   }
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-      lastTime = 0;
-    } else if (!rafId) {
-      rafId = requestAnimationFrame(step);
-    }
-  });
 })();
 
 
